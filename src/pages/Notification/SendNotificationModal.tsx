@@ -31,7 +31,6 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
     audienceType: "all",
   });
 
-  
   const [activeTab, setActiveTab] = useState("customers");
 
   // ✅ Separate selection states for each tab
@@ -176,7 +175,7 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
               <Table
                 rowKey={(record: any, index) =>
                   `customer_${record.id || index}`
-                } // ✅ ensures unique key
+                }
                 columns={columns}
                 dataSource={customersData?.data?.data}
                 loading={loadingCustomers}
@@ -185,10 +184,10 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
                 rowSelection={{
                   selectedRowKeys: selectedCustomerKeys,
                   onChange: (keys) => {
-                    console.log("Selected customer keys:", keys); // debug
+                    console.log("Selected customer keys:", keys);
                     setSelectedCustomerKeys(keys);
                   },
-                  preserveSelectedRowKeys: true, // ✅ keeps selection stable
+                  preserveSelectedRowKeys: true,
                 }}
               />
             </TabPane>

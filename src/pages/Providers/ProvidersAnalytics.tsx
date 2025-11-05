@@ -60,8 +60,8 @@ const ProvidersAnalytics = () => {
   const customerOverviewItems = [
     { label: "Total Providers Listed", value: 1750 },
     { label: "Profile Completed/In Review", value: 890 },
-    { label: "Average Revenue per Provider(MoM)", value: "$500" },
-    { label: "Total Cancellation Charges Generated", value: "$15,670" },
+    { label: "Average Revenue per Provider(MoM)", value: "500" },
+    { label: "Total Cancellation Charges Generated", value: "15,670" },
   ];
 
   //  Appointment status items

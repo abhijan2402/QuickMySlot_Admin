@@ -9,6 +9,7 @@ import {
   Space,
   Popconfirm,
   message,
+  Tabs,
 } from "antd";
 import moment from "moment";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -20,107 +21,103 @@ import {
 } from "../../redux/api/emailApi";
 import { toast } from "react-toastify";
 import { useGetUsersQuery } from "../../redux/api/UserApi";
+import { useGetprovidersQuery } from "../../redux/api/providerApi";
 
 const { Option } = Select;
-
-
+const { TabPane } = Tabs;
 
 const Mail = () => {
   const { data, isFetching } = useGetemailQuery("");
-
   const [addEmail, { isLoading: isAdding }] = useAddemailMutation();
   const [updateEmail, { isLoading: isUpdating }] = useUpdateemailMutation();
-  const [deleteEmail, { isLoading: isDeleting }] = useDeleteemailMutation();
+  const [deleteEmail] = useDeleteemailMutation();
 
   const [userSearch, setUserSearch] = useState("");
-
-  const { data: UserList, isLoading } = useGetUsersQuery({
+  const { data: UserList, isLoading: loadingUsers } = useGetUsersQuery({
     search: userSearch,
   });
+  const { data: providersData, isLoading: loadingProviders } =
+    useGetprovidersQuery();
 
-  console.log(UserList?.data?.data);
-
-  // Table state/history (replace with API response if needed)
-  const [emailHistory, setEmailHistory] = useState([]);
+  // UI States
   const [modalVisible, setModalVisible] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [activeTab, setActiveTab] = useState("customers");
+
+  // Selected IDs for Customers & Providers
+  const [selectedCustomerKeys, setSelectedCustomerKeys] = useState<number[]>(
+    []
+  );
+  const [selectedProviderKeys, setSelectedProviderKeys] = useState<number[]>(
+    []
+  );
+
+  // Form Values
   const [formValues, setFormValues] = useState({
     subject: "",
     message: "",
     title: "",
     scheduled_at: null,
     audienceType: "all",
-    selectedUsers: [],
   });
-  const [editId, setEditId] = useState(null);
-
- const openModal = (edit = null) => {
-   if (edit) {
-     console.log("Editing:", edit);
-     // Map existing user_ids (array of IDs) to Select format if needed
-     const userOptions = (edit.user_ids || []).map((id) => {
-       const found = UserList?.data?.data?.find((u) => u.id === id);
-       return found
-         ? { label: found.name, value: found.id }
-         : { label: `User ${id}`, value: id };
-     });
-
-     setFormValues({
-       subject: edit.subject,
-       message: edit.message,
-       title: edit.title,
-       scheduled_at: edit.scheduled_at ? moment(edit.scheduled_at) : null,
-       audienceType: edit.is_all_users === true ? "all" : "individual",
-       selectedUsers: userOptions, // ✅ use objects instead of IDs
-     });
-     setEditId(edit.id || edit._id);
-   } else {
-     setFormValues({
-       subject: "",
-       message: "",
-       title: "",
-       scheduled_at: null,
-       audienceType: "all",
-       selectedUsers: [],
-     });
-     setEditId(null);
-   }
-   setModalVisible(true);
- };
-
 
   const handleInputChange = (field, value) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
   };
 
-  // FormData builder function per backend format
-const buildFormData = () => {
-  const fd = new FormData();
-  fd.append("subject", formValues.subject || formValues.title);
-  fd.append("message", formValues.message);
-  fd.append("title", formValues.title);
+  const openModal = (edit = null) => {
+    if (edit) {
+      console.log("Editing:", edit);
+      setFormValues({
+        subject: edit.subject,
+        message: edit.message,
+        title: edit.title,
+        scheduled_at: edit.scheduled_at ? moment(edit.scheduled_at) : null,
+        audienceType: edit.is_all_users ? "all" : "individual",
+      });
+      setSelectedCustomerKeys(edit.user_ids || []);
+      setSelectedProviderKeys(edit.provider_ids || []);
+      setEditId(edit.id);
+    } else {
+      setFormValues({
+        subject: "",
+        message: "",
+        title: "",
+        scheduled_at: null,
+        audienceType: "all",
+      });
+      setSelectedCustomerKeys([]);
+      setSelectedProviderKeys([]);
+      setEditId(null);
+    }
+    setActiveTab("customers");
+    setModalVisible(true);
+  };
 
-  if (formValues.scheduled_at) {
-    fd.append(
-      "scheduled_at",
-      formValues.scheduled_at.format("YYYY-MM-DD HH:mm:ss")
-    );
-  }
+  const buildFormData = () => {
+    const fd = new FormData();
+    fd.append("subject", formValues.subject || formValues.title);
+    fd.append("message", formValues.message);
+    fd.append("title", formValues.title);
+    if (formValues.scheduled_at) {
+      fd.append(
+        "scheduled_at",
+        formValues.scheduled_at.format("YYYY-MM-DD HH:mm:ss")
+      );
+    }
+    fd.append("is_all_users", formValues.audienceType === "all" ? "1" : "0");
 
-  fd.append("is_all_users", formValues.audienceType === "all" ? "1" : "0");
+    if (formValues.audienceType === "individual") {
+      selectedCustomerKeys.forEach((id: any, i) =>
+        fd.append(`user_ids[${i}]`, id)
+      );
+      selectedProviderKeys.forEach((id: any, i) =>
+        fd.append(`provider_ids[${i}]`, id)
+      );
+    }
+    return fd;
+  };
 
-  if (formValues.audienceType === "individual") {
-    // ✅ Extract only IDs
-    formValues.selectedUsers.forEach((u, idx) => {
-      const userId = typeof u === "object" ? u.value : u;
-      fd.append(`user_ids[${idx}]`, userId);
-    });
-  }
-
-  return fd;
-};
-
-
-  // ADD email notification
   const submitEmailNotification = async () => {
     if (!formValues.title.trim() && !formValues.subject.trim()) {
       toast.error("Title/Subject is required.");
@@ -132,14 +129,15 @@ const buildFormData = () => {
     }
     if (
       formValues.audienceType === "individual" &&
-      formValues.selectedUsers.length === 0
+      selectedCustomerKeys.length === 0 &&
+      selectedProviderKeys.length === 0
     ) {
-      toast.error("Please select at least one user.");
+      toast.error("Please select at least one user or provider.");
       return;
     }
+
     try {
       const fd = buildFormData();
-
       if (editId) {
         const res = await updateEmail({ formData: fd, id: editId }).unwrap();
         toast.success(res?.message || "Email updated successfully.");
@@ -156,12 +154,10 @@ const buildFormData = () => {
     }
   };
 
-  // DELETE
   const handleDeleteEmail = async (id) => {
     try {
       await deleteEmail(id).unwrap();
       message.success("Deleted successfully.");
-      // Refresh table if needed
     } catch (error) {
       message.error(error?.message || "Failed to delete.");
     }
@@ -182,20 +178,18 @@ const buildFormData = () => {
       dataIndex: "is_all_users",
       key: "is_all_users",
       render: (all, row) =>
-        all === true
+        all
           ? "All Users"
-          : row.user_ids
-          ? row.user_ids.join(", ")
-          : "",
+          : [...(row.user_ids || []), ...(row.provider_ids || [])].join(", "),
     },
     {
       title: "Actions",
       key: "actions",
       render: (_, row) => (
         <Space>
-          <Button onClick={() => openModal(row)} type="link">
+          {/* <Button onClick={() => openModal(row)} type="link">
             Edit
-          </Button>
+          </Button> */}
           <Popconfirm
             title="Are you sure to delete?"
             onConfirm={() => handleDeleteEmail(row.id)}
@@ -223,20 +217,20 @@ const buildFormData = () => {
 
       <Table
         columns={columns}
-        dataSource={data?.data || emailHistory}
+        dataSource={data?.data || []}
         rowKey="id"
         pagination={{ pageSize: 5 }}
-        scroll={{ x: 1000 }}
         loading={isFetching}
       />
 
       <Modal
         title={editId ? "Edit Email Notification" : "Send Email Notification"}
-        visible={modalVisible}
+        open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={submitEmailNotification}
         okText={editId ? "Update Email" : "Send Email"}
         confirmLoading={isAdding || isUpdating}
+        width={800}
       >
         <Input
           placeholder="Subject"
@@ -270,31 +264,58 @@ const buildFormData = () => {
           style={{ width: "100%", marginBottom: 12 }}
         >
           <Option value="all">All Users</Option>
-          <Option value="individual">Individual User(s)</Option>
+          <Option value="individual">Individual</Option>
         </Select>
+
         {formValues.audienceType === "individual" && (
           <>
-            <Input
-              placeholder="Search users by name"
+            <Input.Search
+              placeholder="Search user..."
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
+              allowClear
               style={{ marginBottom: 12 }}
             />
-            <Select
-              mode="multiple"
-              labelInValue={true} // ✅ allows showing names with values
-              placeholder="Select user(s)"
-              value={formValues.selectedUsers}
-              onChange={(value) => handleInputChange("selectedUsers", value)}
-              style={{ width: "100%" }}
-              loading={isLoading}
-            >
-              {UserList?.data?.data.map((user) => (
-                <Option key={user.id} value={user.id}>
-                  {user.name}
-                </Option>
-              ))}
-            </Select>
+
+            <Tabs activeKey={activeTab} onChange={setActiveTab}>
+              <TabPane tab="Customers" key="customers">
+                <Table
+                  rowKey="id"
+                  columns={[
+                    { title: "Name", dataIndex: "name" },
+                    { title: "Email", dataIndex: "email" },
+                  ]}
+                  dataSource={UserList?.data?.data || []}
+                  loading={loadingUsers}
+                  pagination={{ pageSize: 5 }}
+                  scroll={{ y: 240 }}
+                  rowSelection={{
+                    selectedRowKeys: selectedCustomerKeys,
+                    onChange: (keys: any) => setSelectedCustomerKeys(keys),
+                    preserveSelectedRowKeys: true,
+                  }}
+                />
+              </TabPane>
+
+              <TabPane tab="Providers" key="providers">
+                <Table
+                  rowKey="id"
+                  columns={[
+                    { title: "Name", dataIndex: "name" },
+                    { title: "Email", dataIndex: "email" },
+                  ]}
+                  dataSource={providersData?.data || []}
+                  loading={loadingProviders}
+                  pagination={{ pageSize: 5 }}
+                  scroll={{ y: 240 }}
+                  rowSelection={{
+                    selectedRowKeys: selectedProviderKeys,
+                    onChange: (keys: any) => setSelectedProviderKeys(keys),
+                    preserveSelectedRowKeys: true,
+                  }}
+                />
+              </TabPane>
+            </Tabs>
           </>
         )}
       </Modal>

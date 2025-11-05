@@ -68,8 +68,8 @@ const CutomersAnalytics = () => {
     { label: "Total Registered Customers", value: 1750 },
     { label: "Customers with at least 1 Booking", value: 890 },
     { label: "Average Appointments per Customer", value: 2.3 },
-    { label: "Total Revenue from Customers", value: "$15,670" },
-    { label: "Average Customer LTV", value: "$25.50" },
+    { label: "Total Revenue from Customers", value: "15,670" },
+    { label: "Average Customer LTV", value: "25.50" },
   ];
 
   // Appointment status items
