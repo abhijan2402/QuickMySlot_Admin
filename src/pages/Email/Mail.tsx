@@ -12,6 +12,7 @@ import {
 } from "antd";
 import moment from "moment";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import { useGetemailQuery } from "../../redux/api/emailApi";
 
 const { Option } = Select;
 
@@ -23,6 +24,8 @@ const dummyUsers = [
 ];
 
 const Mail = () => {
+  const { data, isFetching } = useGetemailQuery("");
+  console.log(data?.data);
   // Email notifications sent history
   const [emailHistory, setEmailHistory] = useState([]);
 

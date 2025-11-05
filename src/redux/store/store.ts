@@ -21,6 +21,7 @@ import { ordersApi } from "../api/ordersApi";
 import { notificationApi } from "../api/notificationApi";
 import { setDiscountApi } from "../api/setDiscount";
 import { dashboardApi } from "../api/dashboard";
+import { emailApi } from "../api/emailApi";
 
 export const store = configureStore({
   reducer: {
@@ -32,7 +33,6 @@ export const store = configureStore({
     [orderApi.reducerPath]: orderApi.reducer,
     [cmsApi.reducerPath]: cmsApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
-    [propertyApi.reducerPath]: propertyApi.reducer,
     [AdsApi.reducerPath]: AdsApi.reducer,
     [UserApi.reducerPath]: UserApi.reducer,
     [providerApi.reducerPath]: providerApi.reducer,
@@ -45,6 +45,7 @@ export const store = configureStore({
     [notificationApi.reducerPath]: notificationApi.reducer,
     [setDiscountApi.reducerPath]: setDiscountApi.reducer,
     [dashboardApi.reducerPath]: dashboardApi.reducer,
+    [emailApi.reducerPath]: emailApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -68,5 +69,6 @@ export const store = configureStore({
       .concat(ordersApi.middleware)
       .concat(notificationApi.middleware)
       .concat(setDiscountApi.middleware)
-      .concat(dashboardApi.middleware),
+      .concat(dashboardApi.middleware)
+      .concat(emailApi.middleware),
 });
