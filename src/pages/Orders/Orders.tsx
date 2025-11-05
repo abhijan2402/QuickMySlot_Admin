@@ -30,12 +30,9 @@ const Orders = () => {
       title: "Order ID",
       dataIndex: "order_id",
       key: "order_id",
+      render: (name) => name || "--",
     },
-    {
-      title: "Payment ID",
-      dataIndex: "payment_id",
-      key: "payment_id",
-    },
+
     {
       title: "Customer",
       dataIndex: ["customer", "name"],
@@ -51,8 +48,8 @@ const Orders = () => {
 
     {
       title: "Amount",
-      dataIndex: "amount",
-      key: "amount",
+      dataIndex: "final_amount",
+      key: "final_amount",
       render: (val) => `₹${parseFloat(val).toFixed(2)}`,
     },
     {
@@ -89,11 +86,11 @@ const Orders = () => {
 
   return (
     <div
-      // className={`flex-1  transition-all duration-300 ease-in-out ${
-      //   isExpanded || isHovered
-      //     ? "lg:pl-0 lg:w-[1190px]"
-      //     : "lg:pl-[0px] lg:w-[1390px]"
-      // } ${isMobileOpen ? "ml-0" : ""}`}
+    // className={`flex-1  transition-all duration-300 ease-in-out ${
+    //   isExpanded || isHovered
+    //     ? "lg:pl-0 lg:w-[1190px]"
+    //     : "lg:pl-[0px] lg:w-[1390px]"
+    // } ${isMobileOpen ? "ml-0" : ""}`}
     >
       <PageBreadcrumb pageTitle="Orders History" />
       {/* <Tabs
