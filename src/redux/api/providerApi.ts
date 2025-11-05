@@ -34,7 +34,7 @@ export const providerApi = createApi({
     // Delete provider
     deleteprovider: builder.mutation({
       query: (id) => ({
-        url: `delete/${id}`,
+        url: `admin/delete/${id}`,
         method: "POST",
         body: {},
       }),

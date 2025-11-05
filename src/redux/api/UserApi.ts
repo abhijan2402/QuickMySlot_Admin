@@ -26,10 +26,11 @@ export const UserApi = createApi({
     }),
 
     // Get All Users
-    getUsers: builder.query<any, void>({
-      query: () => "admin/user/list",
+    getUsers: builder.query({
+      query: ({ search }) => `admin/user/list?search=${search}`,
       providesTags: ["User"],
     }),
+    
     getUsersDetails: builder.query<any, void>({
       query: (id) => `customer/shops/${id}`,
       providesTags: ["User"],

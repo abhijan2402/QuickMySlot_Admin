@@ -24,14 +24,19 @@ const { Option } = Select;
 const CustomerManagement = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
-  const { data: UserList, isLoading, error } = useGetUsersQuery();
-  console.log(UserList?.data);
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
 
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  const {
+    data: UserList,
+    isLoading,
+    error,
+  } = useGetUsersQuery({ search: searchText });
+  console.log(UserList?.data?.data);
 
   const handleDelete = (id) => {
     message.success("User deleted successfully");
@@ -89,7 +94,7 @@ const CustomerManagement = () => {
           <img
             src={url}
             alt="profile"
-            style={{ width: 40, borderRadius: "10%", height:50 }}
+            style={{ width: 40, borderRadius: "10%", height: 50 }}
           />
         ) : (
           "No Image"
@@ -134,32 +139,32 @@ const CustomerManagement = () => {
     //     </Tag>
     //   ),
     // },
-    {
-      title: "Business Name",
-      dataIndex: "business_name",
-      render: (text) => text || "N/A",
-    },
-    {
-      title: "Category",
-      dataIndex: "service_category",
-      render: (text) => text || "N/A",
-    },
-    {
-      title: "Documents",
-      dataIndex: "portfolio_images",
-      render: (imgs) =>
-        imgs && imgs.length > 0 ? `${imgs.length} Files` : "No Documents",
-    },
+    // {
+    //   title: "Business Name",
+    //   dataIndex: "business_name",
+    //   render: (text) => text || "N/A",
+    // },
+    // {
+    //   title: "Category",
+    //   dataIndex: "service_category",
+    //   render: (text) => text || "N/A",
+    // },
+    // {
+    //   title: "Documents",
+    //   dataIndex: "portfolio_images",
+    //   render: (imgs) =>
+    //     imgs && imgs.length > 0 ? `${imgs.length} Files` : "No Documents",
+    // },
     {
       title: "Created At",
       dataIndex: "created_at",
       render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
     },
-    {
-      title: "Updated At",
-      dataIndex: "updated_at",
-      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
-    },
+    // {
+    //   title: "Updated At",
+    //   dataIndex: "updated_at",
+    //   render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
+    // },
     {
       title: "Action",
       key: "action",
@@ -196,11 +201,11 @@ const CustomerManagement = () => {
 
   return (
     <div
-      className={`flex-1  transition-all duration-300 ease-in-out ${
-        isExpanded || isHovered
-          ? "lg:pl-0 lg:w-[1190px]"
-          : "lg:pl-[0px] lg:w-[1390px]"
-      } ${isMobileOpen ? "ml-0" : ""}`}
+    // className={`flex-1  transition-all duration-300 ease-in-out ${
+    //   isExpanded || isHovered
+    //     ? "lg:pl-0 lg:w-[1190px]"
+    //     : "lg:pl-[0px] lg:w-[1390px]"
+    // } ${isMobileOpen ? "ml-0" : ""}`}
     >
       <PageBreadcrumb pageTitle="Customers Management" />
 
@@ -262,7 +267,7 @@ const CustomerManagement = () => {
           {/* Table here */}
           <Table
             columns={columns}
-            dataSource={UserList?.data}
+            dataSource={UserList?.data?.data}
             rowKey="id"
             scroll={{ x: "max-content" }}
             pagination={{

@@ -89,11 +89,11 @@ const Orders = () => {
 
   return (
     <div
-      className={`flex-1  transition-all duration-300 ease-in-out ${
-        isExpanded || isHovered
-          ? "lg:pl-0 lg:w-[1190px]"
-          : "lg:pl-[0px] lg:w-[1390px]"
-      } ${isMobileOpen ? "ml-0" : ""}`}
+      // className={`flex-1  transition-all duration-300 ease-in-out ${
+      //   isExpanded || isHovered
+      //     ? "lg:pl-0 lg:w-[1190px]"
+      //     : "lg:pl-[0px] lg:w-[1390px]"
+      // } ${isMobileOpen ? "ml-0" : ""}`}
     >
       <PageBreadcrumb pageTitle="Orders History" />
       {/* <Tabs

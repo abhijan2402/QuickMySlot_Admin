@@ -12,145 +12,238 @@ import {
 } from "antd";
 import moment from "moment";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import { useGetemailQuery } from "../../redux/api/emailApi";
+import {
+  useGetemailQuery,
+  useAddemailMutation,
+  useDeleteemailMutation,
+  useUpdateemailMutation,
+} from "../../redux/api/emailApi";
+import { toast } from "react-toastify";
+import { useGetUsersQuery } from "../../redux/api/UserApi";
 
 const { Option } = Select;
 
-const dummyUsers = [
-  { id: 1, name: "Alice Johnson", email: "alice@example.com" },
-  { id: 2, name: "Bob Smith", email: "bob@example.com" },
-  { id: 3, name: "Charlie Davis", email: "charlie@example.com" },
-  { id: 4, name: "Diana Evans", email: "diana@example.com" },
-];
+
 
 const Mail = () => {
   const { data, isFetching } = useGetemailQuery("");
-  console.log(data?.data);
-  // Email notifications sent history
-  const [emailHistory, setEmailHistory] = useState([]);
 
+  const [addEmail, { isLoading: isAdding }] = useAddemailMutation();
+  const [updateEmail, { isLoading: isUpdating }] = useUpdateemailMutation();
+  const [deleteEmail, { isLoading: isDeleting }] = useDeleteemailMutation();
+
+  const [userSearch, setUserSearch] = useState("");
+
+  const { data: UserList, isLoading } = useGetUsersQuery({
+    search: userSearch,
+  });
+
+  console.log(UserList?.data?.data);
+
+  // Table state/history (replace with API response if needed)
+  const [emailHistory, setEmailHistory] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [formValues, setFormValues] = useState({
+    subject: "",
+    message: "",
     title: "",
-    description: "",
-    time: null,
+    scheduled_at: null,
     audienceType: "all",
     selectedUsers: [],
   });
+  const [editId, setEditId] = useState(null);
 
-  const openModal = () => {
-    setFormValues({
-      title: "",
-      description: "",
-      time: null,
-      audienceType: "all",
-      selectedUsers: [],
-    });
-    setModalVisible(true);
-  };
+ const openModal = (edit = null) => {
+   if (edit) {
+     console.log("Editing:", edit);
+     // Map existing user_ids (array of IDs) to Select format if needed
+     const userOptions = (edit.user_ids || []).map((id) => {
+       const found = UserList?.data?.data?.find((u) => u.id === id);
+       return found
+         ? { label: found.name, value: found.id }
+         : { label: `User ${id}`, value: id };
+     });
+
+     setFormValues({
+       subject: edit.subject,
+       message: edit.message,
+       title: edit.title,
+       scheduled_at: edit.scheduled_at ? moment(edit.scheduled_at) : null,
+       audienceType: edit.is_all_users === true ? "all" : "individual",
+       selectedUsers: userOptions, // ✅ use objects instead of IDs
+     });
+     setEditId(edit.id || edit._id);
+   } else {
+     setFormValues({
+       subject: "",
+       message: "",
+       title: "",
+       scheduled_at: null,
+       audienceType: "all",
+       selectedUsers: [],
+     });
+     setEditId(null);
+   }
+   setModalVisible(true);
+ };
+
 
   const handleInputChange = (field, value) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Simulate send email function (replace this with your real email API call)
-  const sendEmail = async (email, subject, body) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`Email sent to ${email} with subject "${subject}"`);
-        resolve(true);
-      }, 500);
-    });
-  };
+  // FormData builder function per backend format
+const buildFormData = () => {
+  const fd = new FormData();
+  fd.append("subject", formValues.subject || formValues.title);
+  fd.append("message", formValues.message);
+  fd.append("title", formValues.title);
 
+  if (formValues.scheduled_at) {
+    fd.append(
+      "scheduled_at",
+      formValues.scheduled_at.format("YYYY-MM-DD HH:mm:ss")
+    );
+  }
+
+  fd.append("is_all_users", formValues.audienceType === "all" ? "1" : "0");
+
+  if (formValues.audienceType === "individual") {
+    // ✅ Extract only IDs
+    formValues.selectedUsers.forEach((u, idx) => {
+      const userId = typeof u === "object" ? u.value : u;
+      fd.append(`user_ids[${idx}]`, userId);
+    });
+  }
+
+  return fd;
+};
+
+
+  // ADD email notification
   const submitEmailNotification = async () => {
-    if (!formValues.title.trim() || !formValues.description.trim()) {
-      message.error("Title and description are required.");
+    if (!formValues.title.trim() && !formValues.subject.trim()) {
+      toast.error("Title/Subject is required.");
       return;
     }
-
+    if (!formValues.message.trim()) {
+      toast.error("Message is required.");
+      return;
+    }
     if (
       formValues.audienceType === "individual" &&
       formValues.selectedUsers.length === 0
     ) {
-      message.error("Please select at least one user.");
+      toast.error("Please select at least one user.");
       return;
     }
-
-    // Determine recipient emails
-    const recipients =
-      formValues.audienceType === "all"
-        ? dummyUsers.map((u) => u.email)
-        : dummyUsers
-            .filter((u) => formValues.selectedUsers.includes(u.id))
-            .map((u) => u.email);
-
     try {
-      // Optionally support scheduling for future, here immediate send simulation
-      for (const email of recipients) {
-        await sendEmail(email, formValues.title, formValues.description);
+      const fd = buildFormData();
+
+      if (editId) {
+        const res = await updateEmail({ formData: fd, id: editId }).unwrap();
+        toast.success(res?.message || "Email updated successfully.");
+      } else {
+        const res = await addEmail({ formData: fd, id: "" }).unwrap();
+        toast.success(res?.message || "Email sent successfully.");
       }
-
-      // Record the sent email notification to history
-      setEmailHistory((prev) => [
-        {
-          id: Date.now(),
-          title: formValues.title,
-          description: formValues.description,
-          time: formValues.time || moment(),
-          audience:
-            formValues.audienceType === "all"
-              ? "All Users"
-              : dummyUsers
-                  .filter((u) => formValues.selectedUsers.includes(u.id))
-                  .map((u) => u.name)
-                  .join(", "),
-        },
-        ...prev,
-      ]);
-
-      message.success("Email notification sent successfully.");
       setModalVisible(false);
+      setEditId(null);
     } catch (error) {
-      message.error("Failed to send email notification.");
+      toast.error(
+        error?.message || "Failed to send/update email notification."
+      );
+    }
+  };
+
+  // DELETE
+  const handleDeleteEmail = async (id) => {
+    try {
+      await deleteEmail(id).unwrap();
+      message.success("Deleted successfully.");
+      // Refresh table if needed
+    } catch (error) {
+      message.error(error?.message || "Failed to delete.");
     }
   };
 
   const columns = [
     { title: "Title", dataIndex: "title", key: "title" },
-    { title: "Description", dataIndex: "description", key: "description" },
+    { title: "Description", dataIndex: "message", key: "message" },
     {
-      title: "Sent Time",
-      dataIndex: "time",
-      key: "time",
-      render: (time) => moment(time).format("YYYY-MM-DD HH:mm"),
+      title: "Scheduled Time",
+      dataIndex: "scheduled_at",
+      key: "scheduled_at",
+      render: (time) =>
+        time ? moment(time).format("YYYY-MM-DD HH:mm") : "Immediate",
     },
-    { title: "Audience", dataIndex: "audience", key: "audience" },
+    {
+      title: "Audience",
+      dataIndex: "is_all_users",
+      key: "is_all_users",
+      render: (all, row) =>
+        all === true
+          ? "All Users"
+          : row.user_ids
+          ? row.user_ids.join(", ")
+          : "",
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, row) => (
+        <Space>
+          <Button onClick={() => openModal(row)} type="link">
+            Edit
+          </Button>
+          <Popconfirm
+            title="Are you sure to delete?"
+            onConfirm={() => handleDeleteEmail(row.id)}
+          >
+            <Button type="link" danger>
+              Delete
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
   ];
 
   return (
     <div style={{ padding: 24 }}>
       <PageBreadcrumb pageTitle="Mail History" />
 
-      <Button type="primary" style={{ marginBottom: 16 }} onClick={openModal}>
+      <Button
+        type="primary"
+        style={{ marginBottom: 16 }}
+        onClick={() => openModal()}
+      >
         Send New Email Notification
       </Button>
 
       <Table
         columns={columns}
-        dataSource={emailHistory}
+        dataSource={data?.data || emailHistory}
         rowKey="id"
         pagination={{ pageSize: 5 }}
         scroll={{ x: 1000 }}
+        loading={isFetching}
       />
 
       <Modal
-        title="Send Email Notification"
+        title={editId ? "Edit Email Notification" : "Send Email Notification"}
         visible={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={submitEmailNotification}
-        okText="Send Email"
+        okText={editId ? "Update Email" : "Send Email"}
+        confirmLoading={isAdding || isUpdating}
       >
+        <Input
+          placeholder="Subject"
+          value={formValues.subject}
+          onChange={(e) => handleInputChange("subject", e.target.value)}
+          style={{ marginBottom: 12 }}
+        />
         <Input
           placeholder="Title"
           value={formValues.title}
@@ -158,52 +251,51 @@ const Mail = () => {
           style={{ marginBottom: 12 }}
         />
         <Input.TextArea
-          placeholder="Description"
-          value={formValues.description}
-          onChange={(e) => handleInputChange("description", e.target.value)}
+          placeholder="Message"
+          value={formValues.message}
+          onChange={(e) => handleInputChange("message", e.target.value)}
           rows={4}
           style={{ marginBottom: 12 }}
         />
         <DatePicker
           showTime
-          placeholder="Select time (optional, immediate send if not set)"
-          value={formValues.time}
-          onChange={(value) => handleInputChange("time", value)}
+          placeholder="Scheduled Time (optional)"
+          value={formValues.scheduled_at}
+          onChange={(value) => handleInputChange("scheduled_at", value)}
           style={{ width: "100%", marginBottom: 12 }}
         />
-
         <Select
           value={formValues.audienceType}
           onChange={(value) => handleInputChange("audienceType", value)}
           style={{ width: "100%", marginBottom: 12 }}
         >
-          <Select.Option value="all">All Users</Select.Option>
-          <Select.Option value="individual">Individual User(s)</Select.Option>
+          <Option value="all">All Users</Option>
+          <Option value="individual">Individual User(s)</Option>
         </Select>
-
         {formValues.audienceType === "individual" && (
-          <Select
-            mode="multiple"
-            showSearch
-            placeholder="Select user(s)"
-            optionFilterProp="children"
-            value={formValues.selectedUsers}
-            onChange={(value) => handleInputChange("selectedUsers", value)}
-            filterOption={(input, option: any) => {
-              const label = option?.children;
-              if (typeof label === "string") {
-                return label.toLowerCase().includes(input.toLowerCase());
-              }
-              return false;
-            }}
-            style={{ width: "100%" }}
-          >
-            {dummyUsers.map((user) => (
-              <Select.Option key={user.id} value={user.id}>
-                {user.name}
-              </Select.Option>
-            ))}
-          </Select>
+          <>
+            <Input
+              placeholder="Search users by name"
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              style={{ marginBottom: 12 }}
+            />
+            <Select
+              mode="multiple"
+              labelInValue={true} // ✅ allows showing names with values
+              placeholder="Select user(s)"
+              value={formValues.selectedUsers}
+              onChange={(value) => handleInputChange("selectedUsers", value)}
+              style={{ width: "100%" }}
+              loading={isLoading}
+            >
+              {UserList?.data?.data.map((user) => (
+                <Option key={user.id} value={user.id}>
+                  {user.name}
+                </Option>
+              ))}
+            </Select>
+          </>
         )}
       </Modal>
     </div>

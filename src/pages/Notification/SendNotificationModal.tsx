@@ -10,10 +10,17 @@ const { Option } = Select;
 const { TabPane } = Tabs;
 
 const SendNotificationModal = ({ visible, onCancel, onSend }) => {
-  const { data: customersData, isLoading: loadingCustomers } =
-    useGetUsersQuery();
+  const [userSearch, setUserSearch] = useState("");
+
+  const { data: customersData, isLoading: loadingCustomers } = useGetUsersQuery(
+    {
+      search: userSearch,
+    }
+  );
   const { data: providersData, isLoading: loadingProviders } =
     useGetprovidersQuery();
+
+  console.log(providersData?.data);
 
   const [sendNotification] = useSendNotificationMutation();
 
@@ -24,7 +31,7 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
     audienceType: "all",
   });
 
-  const [search, setSearch] = useState("");
+  
   const [activeTab, setActiveTab] = useState("customers");
 
   // ✅ Separate selection states for each tab
@@ -101,13 +108,13 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
     },
   ];
 
-  const getFilteredData = (list) => {
-    if (!list) return [];
-    if (!search) return list;
-    return list.filter((u) =>
-      u.name?.toLowerCase().includes(search.toLowerCase())
-    );
-  };
+  // const getFilteredData = (list) => {
+  //   if (!list) return [];
+  //   if (!search) return list;
+  //   return list.filter((u) =>
+  //     u.name?.toLowerCase().includes(search.toLowerCase())
+  //   );
+  // };
 
   return (
     <Modal
@@ -157,8 +164,8 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
         <>
           <Input.Search
             placeholder="Search user..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={userSearch}
+            onChange={(e) => setUserSearch(e.target.value)}
             allowClear
             style={{ marginBottom: 12 }}
           />
@@ -171,7 +178,7 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
                   `customer_${record.id || index}`
                 } // ✅ ensures unique key
                 columns={columns}
-                dataSource={getFilteredData(customersData?.data)}
+                dataSource={customersData?.data?.data}
                 loading={loadingCustomers}
                 pagination={{ pageSize: 5 }}
                 scroll={{ y: 240 }}
@@ -193,7 +200,7 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
                   `provider_${record.id || index}`
                 }
                 columns={columns}
-                dataSource={getFilteredData(providersData?.response)}
+                dataSource={providersData?.data}
                 loading={loadingProviders}
                 pagination={{ pageSize: 5 }}
                 scroll={{ y: 240 }}

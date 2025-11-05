@@ -23,7 +23,7 @@ export const emailApi = createApi({
     // Add (POST) email
     addemail: builder.mutation({
       query: ({ formData, id }) => ({
-        url: `email-shortcuts/send/${id}`,
+        url: `admin/email-shortcuts`,
         method: "POST",
         body: formData,
       }),

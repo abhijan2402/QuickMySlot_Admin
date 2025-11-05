@@ -9,11 +9,12 @@ import {
 } from "../../redux/api/notificationApi";
 import { formatDate } from "../../utils/utils";
 import { toast } from "react-toastify";
+import { useGetUsersQuery } from "../../redux/api/UserApi";
 
 const NotifyMessages = () => {
   const { data, isFetching } = useGetnotificationQuery("");
   const [deleteAd] = useDeleteAdMutation();
-  console.log(data);
+  // console.log(data);
   const [notifications, setNotifications] = useState([
     {
       id: 1,
@@ -23,6 +24,15 @@ const NotifyMessages = () => {
       audience: "All Users",
     },
   ]);
+
+    const [userSearch, setUserSearch] = useState("");
+  
+    const { data: UserList, isLoading } = useGetUsersQuery({
+      search: userSearch,
+    });
+  
+    // console.log(UserList?.data?.data);
+  
 
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -49,12 +59,9 @@ const NotifyMessages = () => {
         if (isAll) {
           return <span>All Users</span>;
         }
-        // Show individual user info, e.g., user_ids or user.name if available
         if (record.user_ids?.length) {
-          // If you have access to user details (array of user objects by user_ids), render their names/emails
           return <span>{record.user_ids.join(", ")}</span>;
         }
-        // Optionally show main user info if available
         if (record.user && record.user.name) {
           return <span>{record.user.name}</span>;
         }
