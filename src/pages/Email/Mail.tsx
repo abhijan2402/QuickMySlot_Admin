@@ -18,6 +18,7 @@ import {
   useAddemailMutation,
   useDeleteemailMutation,
   useUpdateemailMutation,
+  useSendemailMutation,
 } from "../../redux/api/emailApi";
 import { toast } from "react-toastify";
 import { useGetUsersQuery } from "../../redux/api/UserApi";
@@ -30,6 +31,7 @@ const Mail = () => {
   const { data, isFetching } = useGetemailQuery("");
   const [addEmail, { isLoading: isAdding }] = useAddemailMutation();
   const [updateEmail, { isLoading: isUpdating }] = useUpdateemailMutation();
+  const [sendEmail, { isLoading: isSending }] = useSendemailMutation();
   const [deleteEmail] = useDeleteemailMutation();
 
   const [userSearch, setUserSearch] = useState("");
@@ -108,12 +110,8 @@ const Mail = () => {
     fd.append("is_all_users", formValues.audienceType === "all" ? "1" : "0");
 
     if (formValues.audienceType === "individual") {
-      selectedCustomerKeys.forEach((id: any, i) =>
-        fd.append(`user_ids[${i}]`, id)
-      );
-      selectedProviderKeys.forEach((id: any, i) =>
-        fd.append(`provider_ids[${i}]`, id)
-      );
+      const allUserIds = [...selectedCustomerKeys, ...selectedProviderKeys];
+      allUserIds.forEach((id: any, i) => fd.append(`user_ids[${i}]`, id));
     }
     return fd;
   };
@@ -157,9 +155,35 @@ const Mail = () => {
   const handleDeleteEmail = async (id) => {
     try {
       await deleteEmail(id).unwrap();
-      message.success("Deleted successfully.");
+      toast.success("Deleted successfully.");
     } catch (error) {
-      message.error(error?.message || "Failed to delete.");
+      toast.error(error?.message || "Failed to delete.");
+    }
+  };
+
+  const handleSendEmail = async (record) => {
+    try {
+      console.log(record);
+      const fd = new FormData();
+      fd.append("subject", record.subject || record.title);
+      fd.append("description", record.message);
+      fd.append("title", record.title);
+      if (record.scheduled_at) {
+        fd.append(
+          "scheduled_at",
+          record.scheduled_at.format("YYYY-MM-DD HH:mm:ss")
+        );
+      }
+      fd.append("is_all_users", record.audienceType === "all" ? "1" : "0");
+
+      record.user_ids.forEach((id: any, i: any) =>
+        fd.append(`user_ids[${i}]`, id)
+      );
+
+      await sendEmail({ formData: fd, id: record.id }).unwrap();
+      toast.success("Email Send successfully.");
+    } catch (error) {
+      toast.error(error?.message || "Failed to Send.");
     }
   };
 
@@ -190,6 +214,9 @@ const Mail = () => {
           {/* <Button onClick={() => openModal(row)} type="link">
             Edit
           </Button> */}
+          <Button onClick={() => handleSendEmail(row)} type="link">
+            Send Email
+          </Button>
           <Popconfirm
             title="Are you sure to delete?"
             onConfirm={() => handleDeleteEmail(row.id)}

@@ -29,6 +29,15 @@ export const emailApi = createApi({
       }),
       invalidatesTags: ["emailApi"],
     }),
+    // Send (POST) email
+    sendemail: builder.mutation({
+      query: ({ formData, id }) => ({
+        url: `admin/email-shortcuts/send/${id}`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["emailApi"],
+    }),
     // Add (POST) email
     updateemail: builder.mutation({
       query: ({ formData, id }) => ({
@@ -55,4 +64,5 @@ export const {
   useAddemailMutation,
   useDeleteemailMutation,
   useUpdateemailMutation,
+  useSendemailMutation
 } = emailApi;

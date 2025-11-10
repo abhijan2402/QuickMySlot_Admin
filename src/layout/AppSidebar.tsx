@@ -252,7 +252,7 @@ const AppSidebar: React.FC = () => {
               <HorizontaLDots className="size-6" />
             )}
           </h2>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-1">
             {navItems.map((nav, index) => (
               <li key={nav.name}>
                 {nav.subItems ? (
