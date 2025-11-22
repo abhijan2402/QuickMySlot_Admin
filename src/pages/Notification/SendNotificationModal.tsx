@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 const { Option } = Select;
 const { TabPane } = Tabs;
 
-const SendNotificationModal = ({ visible, onCancel, onSend }) => {
+const SendNotificationModal = ({ visible, onCancel }) => {
   const [userSearch, setUserSearch] = useState("");
 
   const { data: customersData, isLoading: loadingCustomers } = useGetUsersQuery(
@@ -20,7 +20,7 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
   const { data: providersData, isLoading: loadingProviders } =
     useGetprovidersQuery();
 
-  console.log(providersData?.data);
+  // console.log(providersData?.data);
 
   const [sendNotification] = useSendNotificationMutation();
 
@@ -67,26 +67,44 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
       });
     }
 
-    // if (formValues.time) {
-    //   formData.append("time", formValues.time.toISOString());
-    // }
-
     try {
-      //   console.log(
-      //     "Notification FormData:",
-      //     Object.fromEntries(formData.entries())
-      //   );
-      const res = await sendNotification(formData);
-      console.log(res);
+      const res = await sendNotification(formData).unwrap();
       toast.success("Notification sent successfully!");
-
-      // Reset state
       setSelectedCustomerKeys([]);
       setSelectedProviderKeys([]);
       onCancel();
     } catch (error) {
-      console.error("Error sending notification:", error);
-      message.error("Failed to send notification!");
+      // Display most detailed error message possible
+
+      // Api error object may be nested
+      let errMsg;
+      if (error?.data?.message) {
+        if (Array.isArray(error.data.message)) {
+          // Join multiple messages if array
+          errMsg = error.data.message
+            .map((msg) =>
+              typeof msg === "string"
+                ? msg
+                : `${msg.field ? msg.field + ": " : ""}${msg.message}`
+            )
+            .join(" | ");
+        } else if (typeof error.data.message === "string") {
+          errMsg = error.data.message;
+        } else {
+          errMsg = JSON.stringify(error.data.message);
+        }
+      } else if (error?.data?.error) {
+        errMsg =
+          typeof error.data.error === "string"
+            ? error.data.error
+            : JSON.stringify(error.data.error);
+      } else if (error?.message) {
+        errMsg = error.message;
+      } else {
+        errMsg = "Failed to send notification! (Unknown error)";
+      }
+
+      toast.error(errMsg);
     }
   };
 
@@ -117,12 +135,12 @@ const SendNotificationModal = ({ visible, onCancel, onSend }) => {
 
   return (
     <Modal
-      title="Send Notification"
+      title="Create Notification"
       open={visible}
       onCancel={onCancel}
       onOk={handleSend}
       width={900}
-      okText="Send"
+      okText="Create"
     >
       {/* Form Fields */}
       <Input

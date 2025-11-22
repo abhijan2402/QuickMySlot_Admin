@@ -30,7 +30,7 @@ export const UserApi = createApi({
       query: ({ search }) => `admin/user/list?search=${search}`,
       providesTags: ["User"],
     }),
-    
+
     getUsersDetails: builder.query<any, void>({
       query: (id) => `customer/shops/${id}`,
       providesTags: ["User"],
@@ -65,6 +65,12 @@ export const UserApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+
+    // Get User Analysis
+    getUsersAnalysis: builder.query<any, void>({
+      query: () => `analytics/customers`,
+      providesTags: ["User"],
+    }),
   }),
 });
 
@@ -75,4 +81,5 @@ export const {
   useDeleteUserMutation,
   useEditUserMutation,
   useUpdateUserStatusMutation,
+  useGetUsersAnalysisQuery
 } = UserApi;

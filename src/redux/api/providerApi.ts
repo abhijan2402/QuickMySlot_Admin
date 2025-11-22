@@ -78,6 +78,12 @@ export const providerApi = createApi({
       }),
       invalidatesTags: ["provider"],
     }),
+
+    // Get Providers Analysis
+    getProviderAnalysis: builder.query<any, void>({
+      query: () => `analytics/vendors`,
+      providesTags: ["provider"],
+    }),
   }),
 });
 
@@ -88,5 +94,6 @@ export const {
   useEditproviderMutation,
   useUpdateproviderStatusMutation,
   useUpdateproviderIsHighlightedMutation,
-  useAddproviderCashbackMutation
+  useAddproviderCashbackMutation,
+  useGetProviderAnalysisQuery,
 } = providerApi;

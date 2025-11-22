@@ -183,7 +183,9 @@ const Mail = () => {
       await sendEmail({ formData: fd, id: record.id }).unwrap();
       toast.success("Email Send successfully.");
     } catch (error) {
-      toast.error(error?.message || "Failed to Send.");
+      console.log(error)
+      toast.error(error?.data?.message || "Failed to Send.");
+      
     }
   };
 
@@ -214,14 +216,14 @@ const Mail = () => {
           {/* <Button onClick={() => openModal(row)} type="link">
             Edit
           </Button> */}
-          <Button onClick={() => handleSendEmail(row)} type="link">
+          <Button onClick={() => handleSendEmail(row)} type="primary">
             Send Email
           </Button>
           <Popconfirm
             title="Are you sure to delete?"
             onConfirm={() => handleDeleteEmail(row.id)}
           >
-            <Button type="link" danger>
+            <Button type="primary" danger>
               Delete
             </Button>
           </Popconfirm>
@@ -239,7 +241,7 @@ const Mail = () => {
         style={{ marginBottom: 16 }}
         onClick={() => openModal()}
       >
-        Send New Email Notification
+        Create New Email Notification
       </Button>
 
       <Table
@@ -248,14 +250,15 @@ const Mail = () => {
         rowKey="id"
         pagination={{ pageSize: 5 }}
         loading={isFetching}
+        scroll={{ x: 1000 }}
       />
 
       <Modal
-        title={editId ? "Edit Email Notification" : "Send Email Notification"}
+        title={editId ? "Edit Email Notification" : "Create Email Notification"}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={submitEmailNotification}
-        okText={editId ? "Update Email" : "Send Email"}
+        okText={editId ? "Update Email" : "Create Email"}
         confirmLoading={isAdding || isUpdating}
         width={800}
       >

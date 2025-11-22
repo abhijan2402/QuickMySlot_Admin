@@ -5,6 +5,7 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import SendNotificationModal from "./SendNotificationModal";
 import {
   useDeleteAdMutation,
+  useForwardNotificationMutation,
   useGetnotificationQuery,
 } from "../../redux/api/notificationApi";
 import { formatDate } from "../../utils/utils";
@@ -14,33 +15,44 @@ import { useGetUsersQuery } from "../../redux/api/UserApi";
 const NotifyMessages = () => {
   const { data, isFetching } = useGetnotificationQuery("");
   const [deleteAd] = useDeleteAdMutation();
-  // console.log(data);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "System Update",
-      description: "System will be updated at midnight.",
-      time: moment().add(1, "day"),
-      audience: "All Users",
-    },
-  ]);
+  const [forwardNotification] = useForwardNotificationMutation();
 
-    const [userSearch, setUserSearch] = useState("");
-  
-    const { data: UserList, isLoading } = useGetUsersQuery({
-      search: userSearch,
-    });
-  
-    // console.log(UserList?.data?.data);
-  
+  const [userSearch, setUserSearch] = useState("");
+
+  const { data: UserList, isLoading } = useGetUsersQuery({
+    search: userSearch,
+  });
+
+  // console.log(UserList?.data?.data);
 
   const [modalVisible, setModalVisible] = useState(false);
 
   const openModal = () => setModalVisible(true);
 
-  const handleNewNotification = (notification) => {
-    setNotifications((prev) => [notification, ...prev]);
-    message.success("Notification sent successfully!");
+  const handleNewNotification = async (record) => {
+    try {
+      console.log(record);
+      const fd = new FormData();
+      // fd.append("subject", record.subject || record.title);
+      fd.append("description", record.description);
+      fd.append("title", record.title);
+      if (record.scheduled_at) {
+        fd.append(
+          "scheduled_at",
+          record.scheduled_at.format("YYYY-MM-DD HH:mm:ss")
+        );
+      }
+      fd.append("is_all_users", record.audienceType === "all" ? "1" : "0");
+
+      record.user_ids.forEach((id: any, i: any) =>
+        fd.append(`user_ids[${i}]`, id)
+      );
+
+      await forwardNotification({ formData: fd, id: record.id }).unwrap();
+      toast.success("Email Send successfully.");
+    } catch (error) {
+      toast.error(error?.message || "Failed to Send.");
+    }
   };
 
   const deleteNotification = async (id) => {
@@ -86,6 +98,12 @@ const NotifyMessages = () => {
           >
             <Button danger>Delete</Button>
           </Popconfirm>
+          <Popconfirm
+            title="Send this notification?"
+            onConfirm={() => handleNewNotification(record)}
+          >
+            <Button type="primary">Send</Button>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -95,7 +113,7 @@ const NotifyMessages = () => {
     <div style={{ padding: 24 }}>
       <PageBreadcrumb pageTitle="Notification History" />
       <Button type="primary" style={{ marginBottom: 16 }} onClick={openModal}>
-        Send Notification
+        Create Notification
       </Button>
 
       <Table
@@ -110,7 +128,6 @@ const NotifyMessages = () => {
       <SendNotificationModal
         visible={modalVisible}
         onCancel={() => setModalVisible(false)}
-        onSend={handleNewNotification}
       />
     </div>
   );

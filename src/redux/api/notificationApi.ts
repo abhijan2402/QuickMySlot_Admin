@@ -20,7 +20,7 @@ export const notificationApi = createApi({
       providesTags: ["notificationApi"],
     }),
 
-    // Add (POST) notification
+    // Add (POST) notification to send
     sendNotification: builder.mutation({
       query: (formData) => ({
         url: `admin/notification-shortcuts`,
@@ -39,6 +39,16 @@ export const notificationApi = createApi({
       }),
       invalidatesTags: ["notificationApi"],
     }),
+
+    // ForwardNotification
+    forwardNotification: builder.mutation({
+      query: ({ formData, id }) => ({
+        url: `admin/notification-shortcuts/send/${id}`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["notificationApi"],
+    }),
   }),
 });
 
@@ -46,4 +56,5 @@ export const {
   useGetnotificationQuery,
   useSendNotificationMutation,
   useDeleteAdMutation,
+  useForwardNotificationMutation
 } = notificationApi;
