@@ -25,7 +25,6 @@ export const UserApi = createApi({
       invalidatesTags: ["User"],
     }),
 
-    // Get All Users
     getUsers: builder.query({
       query: ({ search }) => `admin/user/list?search=${search}`,
       providesTags: ["User"],
@@ -36,17 +35,29 @@ export const UserApi = createApi({
       providesTags: ["User"],
     }),
 
-    // Delete User
     deleteUser: builder.mutation({
       query: (id) => ({
-        url: `delete/${id}`,
+        url: `admin/user/delete/${id}`,
         method: "POST",
         body: {},
       }),
       invalidatesTags: ["User"],
     }),
 
-    // Update/Edit User
+    updateUserStatus: builder.mutation({
+      query: (id) => ({
+        url: `admin/user/status/${id}`,
+        method: "POST",
+        body: {},
+      }),
+      invalidatesTags: ["User"],
+    }),
+
+    getUsersAnalysis: builder.query<any, void>({
+      query: () => `analytics/customers`,
+      providesTags: ["User"],
+    }),
+
     editUser: builder.mutation({
       query: ({ id, formData }) => ({
         url: `admin/user-update/${id}`,
@@ -54,22 +65,6 @@ export const UserApi = createApi({
         body: formData,
       }),
       invalidatesTags: ["User"],
-    }),
-
-    // Update User Status (block/unblock)
-    updateUserStatus: builder.mutation({
-      query: ({ id, formdata }) => ({
-        url: `change/status/${id}`,
-        method: "POST",
-        body: formdata,
-      }),
-      invalidatesTags: ["User"],
-    }),
-
-    // Get User Analysis
-    getUsersAnalysis: builder.query<any, void>({
-      query: () => `analytics/customers`,
-      providesTags: ["User"],
     }),
   }),
 });
@@ -81,5 +76,5 @@ export const {
   useDeleteUserMutation,
   useEditUserMutation,
   useUpdateUserStatusMutation,
-  useGetUsersAnalysisQuery
+  useGetUsersAnalysisQuery,
 } = UserApi;

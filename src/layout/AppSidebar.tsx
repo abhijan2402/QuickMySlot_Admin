@@ -142,7 +142,7 @@ const navItems: NavItem[] = [
         pro: false,
       },
       { name: "Email", icon: <Mail />, path: "/mail", pro: false },
-      { name: "Whatsapp", icon: <MessageCircle />, path: "/media", pro: false },
+      // { name: "Whatsapp", icon: <MessageCircle />, path: "/media", pro: false },
     ],
   },
 ];

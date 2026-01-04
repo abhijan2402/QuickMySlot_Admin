@@ -4,6 +4,8 @@ import { Tabs, Table, Button } from "antd";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { useGetordersQuery } from "../../redux/api/ordersApi";
 import { useSidebar } from "../../context/SidebarContext";
+import { DownloadIcon } from "lucide-react";
+import { toast } from "react-toastify";
 
 const { TabPane } = Tabs;
 
@@ -18,6 +20,20 @@ const Orders = () => {
   // Flattened Orders list
   const Orders = data?.data || [];
 
+  const handleDownloadInvoice = (record) => {
+    if (record.invoice) {
+      const link = document.createElement("a");
+      link.href = record.invoice;
+      link.download = `invoice-${record.order_id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      console.error("No invoice link available");
+      toast.error("Invoice not available");
+    }
+  };
+
   // Table Columns including Action with Invoice button
   const columns = [
     {
@@ -28,8 +44,8 @@ const Orders = () => {
     },
     {
       title: "Order ID",
-      dataIndex: "order_id",
-      key: "order_id",
+      dataIndex: "id",
+      key: "id",
       render: (name) => name || "--",
     },
 
@@ -80,6 +96,20 @@ const Orders = () => {
         >
           {status?.toUpperCase()}
         </span>
+      ),
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Button
+          type="link"
+          icon={<DownloadIcon size={18}/>}
+          onClick={() => handleDownloadInvoice(record)}
+          className="p-0 h-auto"
+        >
+          Invoice
+        </Button>
       ),
     },
   ];

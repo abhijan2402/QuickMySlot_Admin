@@ -22,8 +22,8 @@ export function AuthProvider({ children }) {
       console.log("Login API Response:", response);
 
       // Save user & token in localStorage
-      localStorage.setItem("token", response?.token);
-      localStorage.setItem("user", JSON.stringify(response?.user));
+      localStorage.setItem("qms_admin_token", response?.token);
+      localStorage.setItem("qms_admin_user", JSON.stringify(response?.user));
 
       // Update user state
       setUser(response?.user);
@@ -40,15 +40,15 @@ export function AuthProvider({ children }) {
   // ✅ Logout function
   function logout() {
     setUser(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    localStorage.removeItem("qms_admin_user");
+    localStorage.removeItem("qms_admin_token");
     toast.info("Logged out successfully");
   }
 
   // ✅ Check user & token on mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("qms_admin_token");
+    const storedUser = localStorage.getItem("qms_admin_user");
 
     if (token && storedUser) {
       setUser(JSON.parse(storedUser));
@@ -58,7 +58,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ✅ Authentication status
-  const isAuthenticated = !!localStorage.getItem("token");
+  const isAuthenticated = !!localStorage.getItem("qms_admin_token");
 
   const value = {
     user,

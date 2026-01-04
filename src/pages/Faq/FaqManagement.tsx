@@ -123,7 +123,7 @@ const FaqManagement = () => {
               dataSource={data?.data || []}
               rowKey="id"
               columns={[
-                { title: "Category", dataIndex: "category" },
+                // { title: "Category", dataIndex: "category" },
                 { title: "Question", dataIndex: "question" },
                 { title: "Answer", dataIndex: "answer" },
                 // {
@@ -176,13 +176,12 @@ const FaqManagement = () => {
             onFinish={handleSubmit}
             encType="multipart/form-data"
           >
-            <Form.Item
+            {/* <Form.Item
               label="Category"
               name="category"
-              rules={[{ required: true, message: "Please enter category" }]}
             >
               <Input placeholder="Enter category" />
-            </Form.Item>
+            </Form.Item> */}
 
             <Form.Item
               label="Question"

@@ -16,8 +16,13 @@ import {
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
-import { useGetUsersQuery } from "../../redux/api/UserApi";
+import {
+  useDeleteUserMutation,
+  useGetUsersQuery,
+  useUpdateUserStatusMutation,
+} from "../../redux/api/UserApi";
 import { useSidebar } from "../../context/SidebarContext";
+import { toast } from "react-toastify";
 
 const { Option } = Select;
 
@@ -36,14 +41,18 @@ const CustomerManagement = () => {
     isLoading,
     error,
   } = useGetUsersQuery({ search: searchText });
-  console.log(UserList?.data?.data);
 
-  const handleDelete = (id) => {
-    message.success("User deleted successfully");
+  const [updateUserStatus] = useUpdateUserStatusMutation();
+  const [deleteUser] = useDeleteUserMutation();
+
+  const handleDelete = async (id: any) => {
+    await deleteUser(id).unwrap();
+    toast.success("User deleted successfully");
   };
 
-  const handleToggleStatus = (id) => {
-    message.success("User status updated");
+  const handleToggleStatus = async (id: any) => {
+    await updateUserStatus(id).unwrap();
+    toast.success("User status updated");
   };
 
   const handleApprove = (id) => {
@@ -227,7 +236,7 @@ const CustomerManagement = () => {
           />
         </Col>
 
-        <Col xs={24} sm={10} md={6} lg={5} xl={4}>
+        {/* <Col xs={24} sm={10} md={6} lg={5} xl={4}>
           <Select
             value={statusFilter}
             onChange={(value) => setStatusFilter(value)}
@@ -237,7 +246,7 @@ const CustomerManagement = () => {
             <Option value="Active">Active</Option>
             <Option value="Inactive">Inactive</Option>
           </Select>
-        </Col>
+        </Col> */}
 
         {/* <Col
           xs={24}

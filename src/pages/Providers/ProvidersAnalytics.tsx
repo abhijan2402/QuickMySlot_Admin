@@ -249,7 +249,7 @@ const ProvidersAnalytics: React.FC = () => {
       </section>
 
       {/* ---------------- REVENUE METRICS ---------------- */}
-      <section className="border rounded-xl mb-4 shadow-sm p-5 bg-white">
+      {/* <section className="border rounded-xl mb-4 shadow-sm p-5 bg-white">
         <h3 className="font-semibold text-lg mb-4">Revenue Metrics</h3>
         <ReactApexChart
           options={revenueChartOptions}
@@ -257,7 +257,7 @@ const ProvidersAnalytics: React.FC = () => {
           type="bar"
           height={320}
         />
-      </section>
+      </section> */}
 
       {/* ---------------- APPOINTMENT STATUS ---------------- */}
       <section className="border rounded-xl mb-4 shadow-sm p-5 bg-white">

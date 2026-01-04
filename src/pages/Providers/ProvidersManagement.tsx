@@ -70,6 +70,8 @@ const ProvidersManagement = () => {
   };
 
   const columns = [
+    { title: "User ID", dataIndex: "id" },
+
     {
       title: "Name",
       dataIndex: "name",
@@ -82,11 +84,27 @@ const ProvidersManagement = () => {
         </a>
       ),
     },
-    { title: "Email", dataIndex: "email" },
-    { title: "Phone", dataIndex: "phone_number" },
-    { title: "Category", dataIndex: "service_category" },
-    { title: "Location Served", dataIndex: "location_area_served" },
-    { title: "Tieup Percentage", dataIndex: "is_cashback" },
+    { title: "Email", dataIndex: "email", render: (item) => item || "--" },
+    {
+      title: "Phone",
+      dataIndex: "phone_number",
+      render: (item) => item || "--",
+    },
+    {
+      title: "Category",
+      dataIndex: "service_category",
+      render: (item) => item || "--",
+    },
+    {
+      title: "Location Served",
+      dataIndex: "location_area_served",
+      render: (item) => item || "--",
+    },
+    {
+      title: "Tieup Percentage",
+      dataIndex: "is_cashback",
+      render: (item) => item || "--",
+    },
     {
       title: "Status",
       dataIndex: "is_active",
