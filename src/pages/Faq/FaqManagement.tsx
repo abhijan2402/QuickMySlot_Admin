@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Table, Button, message, Modal, Form, Input, Tabs, Spin } from "antd";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { useSidebar } from "../../context/SidebarContext";
@@ -17,13 +17,27 @@ const FaqManagement = () => {
   // ✅ Track current tab
   const [activeRole, setActiveRole] = useState("customer");
 
-  // ✅ API hooks (refetch when role changes)
-  const {
-    data,
-    isLoading,
-    refetch,
-    isFetching
-  } = useGetfaqQuery({ role: activeRole });
+  // ✅ Option 1: Skip inactive queries completely
+  const { data: customerData, isLoading: customerLoading } = useGetfaqQuery(
+    { role: "customer" },
+    {
+      skip: activeRole !== "customer",
+    }
+  );
+
+  const { data: vendorData, isLoading: vendorLoading } = useGetfaqQuery(
+    { role: "vendor" },
+    {
+      skip: activeRole !== "vendor",
+    }
+  );
+
+  // ✅ Use active data
+  const data = activeRole === "customer" ? customerData : vendorData;
+  const isLoading = activeRole === "customer" ? customerLoading : vendorLoading;
+
+  console.log("1", data);
+
   const [addFaq, { isLoading: adding }] = useAddfaqMutation();
   const [updateFaq, { isLoading: updating }] = useUpdatefaqMutation();
   const [deleteFaq, { isLoading: deleting }] = useDeletefaqMutation();
@@ -50,7 +64,7 @@ const FaqManagement = () => {
       formData.append("question", question);
       formData.append("answer", answer);
       formData.append("is_active", "1");
-      formData.append("role", activeRole); // ✅ Add role dynamically
+      formData.append("role", activeRole);
 
       if (editingFaq) {
         await updateFaq({ formData, id: editingFaq.id }).unwrap();
@@ -63,7 +77,6 @@ const FaqManagement = () => {
       setOpenModal(false);
       setEditingFaq(null);
       form.resetFields();
-      refetch();
     } catch (error) {
       console.error(error);
       message.error("Failed to save FAQ. Please try again.");
@@ -74,7 +87,6 @@ const FaqManagement = () => {
     try {
       await deleteFaq(record?.id).unwrap();
       message.success("FAQ deleted successfully!");
-      refetch();
     } catch (error) {
       console.error(error);
       message.error("Failed to delete FAQ.");
@@ -97,7 +109,6 @@ const FaqManagement = () => {
           activeKey={activeRole}
           onChange={(key) => {
             setActiveRole(key);
-            refetch();
           }}
           className="mb-4"
         >
@@ -153,7 +164,6 @@ const FaqManagement = () => {
                   ),
                 },
               ]}
-              loading={isFetching}
               pagination={false}
             />
           )}

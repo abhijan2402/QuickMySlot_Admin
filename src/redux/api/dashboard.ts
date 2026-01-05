@@ -5,7 +5,7 @@ export const dashboardApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_BASE_URL,
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("qms_admin_token");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }

@@ -6,7 +6,7 @@ export const cmsApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: baseUrl,
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("qms_admin_token");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
