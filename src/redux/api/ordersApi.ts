@@ -19,7 +19,15 @@ export const ordersApi = createApi({
       query: () => `admin/all-bookings`,
       providesTags: ["ordersApi"],
     }),
+    downloadInvoice: builder.mutation({
+      query: (formData) => ({
+        url: "vendor/generate-booking-invoice",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["ordersApi"],
+    }),
   }),
 });
 
-export const { useGetordersQuery } = ordersApi;
+export const { useGetordersQuery, useDownloadInvoiceMutation } = ordersApi;

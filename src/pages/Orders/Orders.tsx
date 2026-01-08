@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { Tabs, Table, Button } from "antd";
 
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import { useGetordersQuery } from "../../redux/api/ordersApi";
+import {
+  useDownloadInvoiceMutation,
+  useGetordersQuery,
+} from "../../redux/api/ordersApi";
 import { useSidebar } from "../../context/SidebarContext";
 import { DownloadIcon } from "lucide-react";
 import { toast } from "react-toastify";
@@ -14,23 +17,41 @@ const Orders = () => {
 
   const [activeRole, setActiveRole] = useState("customer");
 
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
   // Fetch Orderss based on active role
   const { data, isLoading, isFetching } = useGetordersQuery("");
+  const [downloadInvoice] = useDownloadInvoiceMutation();
 
   // Flattened Orders list
   const Orders = data?.data || [];
 
-  const handleDownloadInvoice = (record) => {
-    if (record.invoice) {
-      const link = document.createElement("a");
-      link.href = record.invoice;
-      link.download = `invoice-${record.order_id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      console.error("No invoice link available");
-      toast.error("Invoice not available");
+  const handleDownloadInvoice = async (record) => {
+    try {
+      setDownloadingId(record.id);
+
+      const formData = new FormData();
+      formData.append("booking_id", record.id);
+
+      const res = await downloadInvoice(formData).unwrap();
+
+      const link = res?.data?.download_link;
+
+      if (link) {
+        const a = document.createElement("a");
+        a.href = link;
+        a.target = "_blank";
+        a.download = "";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        toast.error("Invoice download link not found");
+      }
+    } catch (error) {
+      toast.error("Failed to download invoice");
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -104,11 +125,12 @@ const Orders = () => {
       render: (_, record) => (
         <Button
           type="link"
-          icon={<DownloadIcon size={18}/>}
+          icon={<DownloadIcon size={18} />}
+          loading={downloadingId === record.id}
           onClick={() => handleDownloadInvoice(record)}
           className="p-0 h-auto"
         >
-          Invoice
+          {downloadingId === record.id ? "Downloading..." : "Invoice"}
         </Button>
       ),
     },
