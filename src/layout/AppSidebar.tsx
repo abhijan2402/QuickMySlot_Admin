@@ -109,11 +109,11 @@ const navItems: NavItem[] = [
   //   name: "User Engagement",
   //   path: "/user",
   // },
-  {
-    icon: <NotebookText />,
-    name: "Transaction",
-    path: "/transaction",
-  },
+  // {
+  //   icon: <NotebookText />,
+  //   name: "Transaction",
+  //   path: "/transaction",
+  // },
   {
     icon: <CircleQuestionMark />,
     name: "Faq Management",
