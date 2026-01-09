@@ -72,7 +72,7 @@ const navItems: NavItem[] = [
         pro: false,
       },
       {
-        name: "Cutomer Analytics",
+        name: "Customer Analytics",
         icon: <Users />,
         path: "/customer-analytics",
         pro: false,

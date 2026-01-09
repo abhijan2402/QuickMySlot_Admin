@@ -19,7 +19,6 @@ import ProvidersAnalytics from "./pages/Providers/ProvidersAnalytics";
 import Orders from "./pages/Orders/Orders";
 import PrivacyPolicyPage from "./pages/CMS/CMS";
 import ProviderDetails from "./pages/Providers/ProviderDetails";
-import CustomerDetails from "./pages/Customers/CustomerDetails ";
 import Transaction from "./pages/Transaction/Transaction";
 import NotifyMessages from "./pages/Notification/NotifyMessages";
 import WhatsAppMedia from "./pages/Whatsapp/WhatsAppMedia";
@@ -31,6 +30,7 @@ import FaqManagement from "./pages/Faq/FaqManagement";
 import SubscriptionManagement from "./pages/Subscription/SunscriptionManagement";
 import BidDetails from "./pages/Bid/BidDetails";
 import SetDiscount from "./pages/SetDiscount/SetDiscount";
+import CustomerDetails from "./pages/Customers/CustomerDetails";
 
 export default function App() {
   return (

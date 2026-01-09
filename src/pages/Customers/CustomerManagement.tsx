@@ -14,7 +14,7 @@ import {
   Spin,
 } from "antd";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import { Trash2, FileSpreadsheet } from "lucide-react";
+import { Trash2, FileSpreadsheet, EyeIcon } from "lucide-react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { useNavigate } from "react-router";
@@ -24,6 +24,7 @@ import {
   useUpdateUserStatusMutation,
 } from "../../redux/api/UserApi";
 import { toast } from "react-toastify";
+import UserDetailsModal from "./UserDetailsModal";
 
 const { Option } = Select;
 
@@ -34,6 +35,8 @@ const CustomerManagement = () => {
 
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const {
     data: UserList,
@@ -43,6 +46,11 @@ const CustomerManagement = () => {
 
   const [updateUserStatus] = useUpdateUserStatusMutation();
   const [deleteUser] = useDeleteUserMutation();
+
+  const handleViewDetails = (record) => {
+    setSelectedUser(record);
+    setViewModalOpen(true);
+  };
 
   const exportToExcel = () => {
     try {
@@ -103,14 +111,6 @@ const CustomerManagement = () => {
     toast.success("User status updated");
   };
 
-  const handleApprove = (id) => {
-    message.success("User approved");
-  };
-
-  const handleDisapprove = (id) => {
-    message.success("User disapproved");
-  };
-
   const handleAddUser = () => {
     form.validateFields().then((values) => {
       message.success("User added successfully");
@@ -130,14 +130,7 @@ const CustomerManagement = () => {
       title: "Name",
       dataIndex: "name",
       sorter: (a, b) => (a.name || "").localeCompare(b.name || ""),
-      render: (text, record) => (
-        <a
-          style={{ color: "#465FFF", cursor: "pointer" }}
-          onClick={() => navigate(`/customer-details/${record.id}`)}
-        >
-          {text || "N/A"}
-        </a>
-      ),
+      render: (text, record) => text || "N/A",
     },
     {
       title: "Email",
@@ -257,6 +250,18 @@ const CustomerManagement = () => {
               icon={<Trash2 size={16} />}
             />
           </Popconfirm>
+          <Button
+            type="link"
+            onClick={() => handleViewDetails(record)}
+            style={{
+              backgroundColor: "#F2F3F4",
+              color: "#007FFF",
+              padding: "10px 12px",
+              width: "50px",
+            }}
+          >
+            <EyeIcon size={16} />
+          </Button>
         </div>
       ),
     },
@@ -329,6 +334,29 @@ const CustomerManagement = () => {
           />
         </>
       )}
+
+      {/* Details Modal */}
+      <Modal
+        title={null}
+        open={viewModalOpen}
+        footer={null}
+        onCancel={() => {
+          setViewModalOpen(false);
+          setSelectedUser(null);
+        }}
+        width={900}
+        zIndex={10000}
+      >
+        <UserDetailsModal
+          user={selectedUser}
+          open={viewModalOpen}
+          onClose={() => {
+            setViewModalOpen(false);
+            setSelectedUser(null);
+          }}
+        />
+      </Modal>
+
       {/* Add User Modal */}
       <Modal
         title="Add New User"

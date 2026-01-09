@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Tabs, Table, Button, Row, Col, Input } from "antd";
+import { Tabs, Table, Button, Row, Col, Input, Space, Modal } from "antd";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -10,16 +10,26 @@ import {
 import { useSidebar } from "../../context/SidebarContext";
 import { DownloadIcon, FileSpreadsheet } from "lucide-react";
 import { toast } from "react-toastify";
+import { EyeOutlined } from "@ant-design/icons";
+import OrderDetailsModal from "./OrderDetailsModal";
 
 const { TabPane } = Tabs;
 
 const Orders = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
   // Fetch Orderss based on active role
   const { data, isLoading, isFetching } = useGetordersQuery("");
   const [downloadInvoice] = useDownloadInvoiceMutation();
+
+  // View handler
+  const handleViewOrder = (record: any) => {
+    setSelectedOrder(record);
+    setViewModalOpen(true);
+  };
 
   //  Filtered & Processed Orders
   const filteredOrders = useMemo(() => {
@@ -152,15 +162,25 @@ const Orders = () => {
       title: "Action",
       key: "action",
       render: (_, record) => (
-        <Button
-          type="link"
-          icon={<DownloadIcon size={18} />}
-          loading={downloadingId === record.id}
-          onClick={() => handleDownloadInvoice(record)}
-          className="p-0 h-auto"
-        >
-          {downloadingId === record.id ? "Downloading..." : "Invoice"}
-        </Button>
+        <Space>
+          <Button
+            type="link"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewOrder(record)}
+            className="p-0 h-auto"
+          >
+            View
+          </Button>
+          <Button
+            type="link"
+            icon={<DownloadIcon size={18} />}
+            loading={downloadingId === record.id}
+            onClick={() => handleDownloadInvoice(record)}
+            className="p-0 h-auto"
+          >
+            {downloadingId === record.id ? "Downloading..." : "Invoice"}
+          </Button>
+        </Space>
       ),
     },
   ];
@@ -202,6 +222,7 @@ const Orders = () => {
   };
 
   return (
+
     <div>
       <PageBreadcrumb pageTitle="Orders History" />
 
@@ -241,6 +262,28 @@ const Orders = () => {
             `${range[0]}-${range[1]} of ${total} providers`,
         }}
       />
+
+
+      <Modal
+        title={null}
+        open={viewModalOpen}
+        footer={null}
+        onCancel={() => {
+          setViewModalOpen(false);
+          setSelectedOrder(null);
+        }}
+        width={1200}
+        zIndex={10000}
+      >
+        <OrderDetailsModal
+          order={selectedOrder}
+          open={viewModalOpen}
+          onClose={() => {
+            setViewModalOpen(false);
+            setSelectedOrder(null);
+          }}
+        />
+      </Modal>
     </div>
   );
 };

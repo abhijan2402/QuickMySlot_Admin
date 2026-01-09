@@ -13,7 +13,7 @@ import {
   Select,
   Input,
 } from "antd";
-import { Trash2, FileSpreadsheet } from "lucide-react";
+import { Trash2, FileSpreadsheet, Eye, EyeIcon } from "lucide-react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -24,21 +24,42 @@ import {
   useUpdateproviderIsHighlightedMutation,
 } from "../../redux/api/providerApi";
 import { toast } from "react-toastify";
+import ProviderDetailsModal from "./ProviderDetailsModal";
+import { useGetcategoryQuery } from "../../redux/api/categoryApi";
 
 const { Option } = Select;
 
 const ProvidersManagement = () => {
   const [searchText, setSearchText] = useState("");
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [selectedProviderDetails, setSelectedProviderDetails] =
+    useState<any>(null);
 
   const { data: ProviderList, isLoading } = useGetprovidersQuery();
   const [updateproviderIsHighlighted] =
     useUpdateproviderIsHighlightedMutation();
   const [addproviderCashback] = useAddproviderCashbackMutation();
+  const { data: categoryData, isLoading: categoryLoading } =
+    useGetcategoryQuery({});
 
   const navigate = useNavigate();
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [isCashbackModalOpen, setIsCashbackModalOpen] = useState(false);
   const [form] = Form.useForm();
+
+  const handleViewProvider = (record: any) => {
+    setSelectedProviderDetails(record);
+    setViewModalOpen(true);
+  };
+
+  const getServiceCategoryName = (categoryId: number) => {
+    if (categoryLoading || !categoryData?.data) return "Loading...";
+
+    const category = categoryData.data.find(
+      (cat: any) => cat.id === categoryId
+    );
+    return category ? category.name : "--";
+  };
 
   const exportToExcel = () => {
     try {
@@ -152,7 +173,7 @@ const ProvidersManagement = () => {
     {
       title: "Category",
       dataIndex: "service_category",
-      render: (item) => item || "--",
+      render: (item) => getServiceCategoryName(item) || "--",
     },
     {
       title: "Shop Name",
@@ -228,19 +249,25 @@ const ProvidersManagement = () => {
               icon={<Trash2 size={16} />}
             />
           </Popconfirm>
+          <Button
+            type="link"
+            onClick={() => handleViewProvider(record)}
+            style={{
+              backgroundColor: "#F2F3F4",
+              color: "#007FFF",
+              padding: "10px 12px",
+              width: "50px",
+            }}
+          >
+            <EyeIcon size={16}/>
+          </Button>
         </div>
       ),
     },
   ];
 
   return (
-    <div
-    // className={`flex-1 transition-all duration-300 ease-in-out ${
-    //   isExpanded || isHovered
-    //     ? "lg:pl-0 lg:w-[1190px]"
-    //     : "lg:pl-[0px] lg:w-[1390px]"
-    // } ${isMobileOpen ? "ml-0" : ""}`}
-    >
+    <div>
       <PageBreadcrumb pageTitle="Providers Management" />
 
       <Row
@@ -323,6 +350,27 @@ const ProvidersManagement = () => {
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title={null}
+        open={viewModalOpen}
+        footer={null}
+        onCancel={() => {
+          setViewModalOpen(false);
+          setSelectedProviderDetails(null);
+        }}
+        width={900}
+        zIndex={10000}
+      >
+        <ProviderDetailsModal
+          provider={selectedProviderDetails}
+          open={viewModalOpen}
+          onClose={() => {
+            setViewModalOpen(false);
+            setSelectedProviderDetails(null);
+          }}
+        />
       </Modal>
     </div>
   );
