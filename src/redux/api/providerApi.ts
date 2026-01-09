@@ -84,6 +84,15 @@ export const providerApi = createApi({
       query: () => `analytics/vendors`,
       providesTags: ["provider"],
     }),
+
+    deleteProviderUser: builder.mutation({
+      query: (id) => ({
+        url: `admin/user/delete/${id}`,
+        method: "POST",
+        body: {},
+      }),
+      invalidatesTags: ["provider"],
+    }),
   }),
 });
 
@@ -96,4 +105,5 @@ export const {
   useUpdateproviderIsHighlightedMutation,
   useAddproviderCashbackMutation,
   useGetProviderAnalysisQuery,
+  useDeleteProviderUserMutation
 } = providerApi;

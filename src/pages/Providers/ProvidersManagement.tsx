@@ -20,12 +20,14 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { useNavigate } from "react-router";
 import {
   useAddproviderCashbackMutation,
+  useDeleteProviderUserMutation,
   useGetprovidersQuery,
   useUpdateproviderIsHighlightedMutation,
 } from "../../redux/api/providerApi";
 import { toast } from "react-toastify";
 import ProviderDetailsModal from "./ProviderDetailsModal";
 import { useGetcategoryQuery } from "../../redux/api/categoryApi";
+import { useDeleteUserMutation } from "../../redux/api/UserApi";
 
 const { Option } = Select;
 
@@ -41,6 +43,7 @@ const ProvidersManagement = () => {
   const [addproviderCashback] = useAddproviderCashbackMutation();
   const { data: categoryData, isLoading: categoryLoading } =
     useGetcategoryQuery({});
+  const [deleteProviderUser] = useDeleteProviderUserMutation();
 
   const navigate = useNavigate();
   const [selectedProvider, setSelectedProvider] = useState(null);
@@ -145,6 +148,11 @@ const ProvidersManagement = () => {
     }
   };
 
+  const handleDelete = async (id: any) => {
+    await deleteProviderUser(id).unwrap();
+    toast.success("Provider deleted successfully");
+  };
+
   const columns = [
     {
       title: "Provider ID",
@@ -232,7 +240,7 @@ const ProvidersManagement = () => {
 
           <Popconfirm
             title="Are you sure to delete this provider?"
-            onConfirm={() => toast.success("Provider deleted successfully")}
+            onConfirm={() => handleDelete(record.id)}
             okText="Yes"
             cancelText="No"
           >
