@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Table,
   Button,
   Popconfirm,
-  message,
   Modal,
   Form,
   InputNumber,
@@ -12,11 +11,13 @@ import {
   Col,
   Spin,
   Select,
+  Input,
 } from "antd";
-import { Trash2 } from "lucide-react";
+import { Trash2, FileSpreadsheet } from "lucide-react";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { useNavigate } from "react-router";
-import { useSidebar } from "../../context/SidebarContext";
 import {
   useAddproviderCashbackMutation,
   useGetprovidersQuery,
@@ -27,7 +28,8 @@ import { toast } from "react-toastify";
 const { Option } = Select;
 
 const ProvidersManagement = () => {
-  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const [searchText, setSearchText] = useState("");
+
   const { data: ProviderList, isLoading } = useGetprovidersQuery();
   const [updateproviderIsHighlighted] =
     useUpdateproviderIsHighlightedMutation();
@@ -37,6 +39,59 @@ const ProvidersManagement = () => {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [isCashbackModalOpen, setIsCashbackModalOpen] = useState(false);
   const [form] = Form.useForm();
+
+  const exportToExcel = () => {
+    try {
+      const exportData = filteredData.map((provider: any) => ({
+        "Provider ID": `QP_${provider.id}`,
+        Name: provider.name || "N/A",
+        Email: provider.email || "--",
+        Phone: provider.phone_number || "--",
+        Category: provider.service_category || "--",
+        "Shop Name": provider.business_name || "--",
+        Location: provider.location_area_served || "--",
+        "Tieup %": provider.is_cashback || "--",
+        Status: provider.is_active ? "Active" : "Inactive",
+        Highlighted: provider.is_highlighted === "1" ? "Active" : "Not Active",
+      }));
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      ws["!cols"] = exportData[0]
+        ? Object.keys(exportData[0]).map(() => ({ wch: 15 }))
+        : [];
+
+      XLSX.utils.book_append_sheet(wb, ws, "Providers");
+
+      const today = new Date().toISOString().split("T")[0];
+      const fileName = `Providers_${today}.xlsx`;
+
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      saveAs(new Blob([wbout], { type: "application/octet-stream" }), fileName);
+
+      toast.success("Providers exported successfully!");
+    } catch (error) {
+      toast.error("Failed to export providers");
+    }
+  };
+
+  const filteredData = useMemo(() => {
+    if (!ProviderList?.data || !searchText.trim()) {
+      return ProviderList?.data || [];
+    }
+
+    const query = searchText.toLowerCase();
+    return ProviderList.data.filter(
+      (provider: any) =>
+        provider.id.toString().toLowerCase().includes(query) ||
+        `QP_${provider.id}`.toLowerCase().includes(query) ||
+        provider.business_name?.toLowerCase().includes(query) ||
+        provider.name?.toLowerCase().includes(query) ||
+        provider.email?.toLowerCase().includes(query) ||
+        provider.phone_number?.toLowerCase().includes(query)
+    );
+  }, [ProviderList?.data, searchText]);
 
   const handleHighlight = async (record) => {
     const formdata = new FormData();
@@ -49,7 +104,7 @@ const ProvidersManagement = () => {
     toast.success("Provider highlight changed successfully.");
   };
 
-  // ✅ Handle Add Cashback
+  // Handle Add Cashback
   const handleAddCashback = async () => {
     try {
       const values = await form.validateFields();
@@ -70,7 +125,11 @@ const ProvidersManagement = () => {
   };
 
   const columns = [
-    { title: "User ID", dataIndex: "id" },
+    {
+      title: "Provider ID",
+      dataIndex: "id",
+      render: (id: string) => `QP_${id}`,
+    },
 
     {
       title: "Name",
@@ -93,6 +152,11 @@ const ProvidersManagement = () => {
     {
       title: "Category",
       dataIndex: "service_category",
+      render: (item) => item || "--",
+    },
+    {
+      title: "Shop Name",
+      dataIndex: "business_name",
       render: (item) => item || "--",
     },
     {
@@ -171,13 +235,39 @@ const ProvidersManagement = () => {
 
   return (
     <div
-      // className={`flex-1 transition-all duration-300 ease-in-out ${
-      //   isExpanded || isHovered
-      //     ? "lg:pl-0 lg:w-[1190px]"
-      //     : "lg:pl-[0px] lg:w-[1390px]"
-      // } ${isMobileOpen ? "ml-0" : ""}`}
+    // className={`flex-1 transition-all duration-300 ease-in-out ${
+    //   isExpanded || isHovered
+    //     ? "lg:pl-0 lg:w-[1190px]"
+    //     : "lg:pl-[0px] lg:w-[1390px]"
+    // } ${isMobileOpen ? "ml-0" : ""}`}
     >
       <PageBreadcrumb pageTitle="Providers Management" />
+
+      <Row
+        gutter={[16, 16]}
+        className="mb-4"
+        // justify="space-between"
+        align="middle"
+      >
+        <Col xs={24} sm={14} md={12} lg={10} xl={8}>
+          <Input.Search
+            placeholder="Search by name, email or phone"
+            allowClear
+            onChange={(e) => setSearchText(e.target.value)}
+            value={searchText}
+            enterButton
+            onSearch={(val) => setSearchText(val)}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={4} lg={4}>
+          <button
+            onClick={exportToExcel}
+            className="bg-green-600 hover:bg-green-700 border-green-600 text-white flex items-center py-2 px-4 rounded-md gap-2 font-semibold"
+          >
+            <FileSpreadsheet size={20} className="text-white" /> Export Excel
+          </button>
+        </Col>
+      </Row>
 
       {isLoading ? (
         <div className="flex justify-center items-center flex-col gap-4 h-[60vh] border">
@@ -187,14 +277,17 @@ const ProvidersManagement = () => {
       ) : (
         <Table
           columns={columns}
-          dataSource={ProviderList?.data}
+          dataSource={filteredData}
           rowKey="id"
           scroll={{ x: "max-content" }}
           pagination={{
             pageSizeOptions: ["25", "50", "100"],
             showSizeChanger: true,
             defaultPageSize: 15,
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} of ${total} providers`,
           }}
+          loading={isLoading}
         />
       )}
 

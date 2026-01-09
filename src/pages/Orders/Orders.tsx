@@ -1,30 +1,44 @@
-import React, { useState } from "react";
-import { Tabs, Table, Button } from "antd";
-
+import React, { useMemo, useState } from "react";
+import { Tabs, Table, Button, Row, Col, Input } from "antd";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import {
   useDownloadInvoiceMutation,
   useGetordersQuery,
 } from "../../redux/api/ordersApi";
 import { useSidebar } from "../../context/SidebarContext";
-import { DownloadIcon } from "lucide-react";
+import { DownloadIcon, FileSpreadsheet } from "lucide-react";
 import { toast } from "react-toastify";
 
 const { TabPane } = Tabs;
 
 const Orders = () => {
-  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-
-  const [activeRole, setActiveRole] = useState("customer");
-
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState("");
 
   // Fetch Orderss based on active role
   const { data, isLoading, isFetching } = useGetordersQuery("");
   const [downloadInvoice] = useDownloadInvoiceMutation();
 
-  // Flattened Orders list
-  const Orders = data?.data || [];
+  //  Filtered & Processed Orders
+  const filteredOrders = useMemo(() => {
+    const orders = data?.data || [];
+
+    return orders.filter((order: any) => {
+      const query = searchText.toLowerCase().trim();
+      const matchesSearch =
+        order.id.toString().toLowerCase().includes(query) ||
+        `QO_${order.id}`.toLowerCase().includes(query) ||
+        order.customer?.name?.toLowerCase().includes(query) ||
+        order.vendor?.business_name?.toLowerCase().includes(query) ||
+        order.vendor?.name?.toLowerCase().includes(query) ||
+        order.final_amount?.toString().includes(query) ||
+        order.status?.toLowerCase().includes(query);
+
+      return matchesSearch;
+    });
+  }, [data?.data, searchText]);
 
   const handleDownloadInvoice = async (record) => {
     try {
@@ -67,7 +81,7 @@ const Orders = () => {
       title: "Order ID",
       dataIndex: "id",
       key: "id",
-      render: (name) => name || "--",
+      render: (name) => `QO_${name}` || "--",
     },
 
     {
@@ -105,6 +119,20 @@ const Orders = () => {
       title: "Status",
       dataIndex: "status",
       key: "status",
+      sorter: (a, b) => {
+        // Define sort order: confirmed > pending > others
+        const statusOrder = {
+          confirmed: 3,
+          pending: 2,
+          cancelled: 1,
+          failed: 0,
+        };
+
+        return (
+          (statusOrder[a.status as keyof typeof statusOrder] || 0) -
+          (statusOrder[b.status as keyof typeof statusOrder] || 0)
+        );
+      },
       render: (status) => (
         <span
           className={`px-2 py-1 rounded-md text-white ${
@@ -119,6 +147,7 @@ const Orders = () => {
         </span>
       ),
     },
+
     {
       title: "Action",
       key: "action",
@@ -136,35 +165,80 @@ const Orders = () => {
     },
   ];
 
+  const exportToExcel = async () => {
+    try {
+      const exportData = filteredOrders.map((order: any) => ({
+        Date: new Date(order.created_at).toLocaleDateString(),
+        "Order ID": `QO_${order.id}`,
+        Customer: order.customer?.name || "N/A",
+        Vendor: order.vendor?.business_name || order.vendor?.name || "N/A",
+        Amount: `₹${parseFloat(order.final_amount || 0).toFixed(2)}`,
+        "Platform Fee": `₹${parseFloat(order.platform_fee || 0).toFixed(2)}`,
+        Tax: `₹${parseFloat(order.tax || 0).toFixed(2)}`,
+        Status: order.status?.toUpperCase() || "N/A",
+      }));
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      const colWidths = exportData[0]
+        ? Object.keys(exportData[0]).map(() => ({ wch: 15 }))
+        : [];
+      ws["!cols"] = colWidths;
+
+      XLSX.utils.book_append_sheet(wb, ws, "Orders");
+
+      const today = new Date().toISOString().split("T")[0];
+      const fileName = `Orders_${today}.xlsx`;
+
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      saveAs(new Blob([wbout], { type: "application/octet-stream" }), fileName);
+
+      toast.success("Orders exported successfully!");
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export orders");
+    }
+  };
+
   return (
-    <div
-    // className={`flex-1  transition-all duration-300 ease-in-out ${
-    //   isExpanded || isHovered
-    //     ? "lg:pl-0 lg:w-[1190px]"
-    //     : "lg:pl-[0px] lg:w-[1390px]"
-    // } ${isMobileOpen ? "ml-0" : ""}`}
-    >
+    <div>
       <PageBreadcrumb pageTitle="Orders History" />
-      {/* <Tabs
-        activeKey={activeRole}
-        onChange={setActiveRole}
-        type="line"
-        animated
-      >
-        <TabPane tab="Customer" key="customer" />
-        <TabPane tab="Vendor" key="vendor" />
-      </Tabs> */}
+
+      <Row gutter={[16, 16]} className="mb-4" align="middle">
+        {/* Search Input */}
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Input.Search
+            placeholder="Search by QO_ID, customer, vendor, amount, status..."
+            allowClear
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onSearch={setSearchText}
+            enterButton
+          />
+        </Col>
+        <Col xs={24} sm={12} md={4} lg={4}>
+          <button
+            onClick={exportToExcel}
+            className="bg-green-600 hover:bg-green-700 border-green-600 text-white flex items-center py-2 px-4 rounded-md gap-2 font-semibold"
+          >
+            <FileSpreadsheet size={20} className="text-white" /> Export Excel
+          </button>
+        </Col>
+      </Row>
 
       <Table
         columns={columns}
-        dataSource={Orders}
+        dataSource={filteredOrders}
         rowKey="id"
         loading={isFetching}
         scroll={{ x: "max-content" }}
         pagination={{
-          pageSizeOptions: ["15", "25", "50"],
+          pageSizeOptions: ["15", "25", "50", "100"],
           showSizeChanger: true,
           defaultPageSize: 15,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} providers`,
         }}
       />
     </div>

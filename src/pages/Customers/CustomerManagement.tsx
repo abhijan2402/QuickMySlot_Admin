@@ -14,21 +14,20 @@ import {
   Spin,
 } from "antd";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import { Trash2 } from "lucide-react";
+import { Trash2, FileSpreadsheet } from "lucide-react";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import { useNavigate } from "react-router";
 import {
   useDeleteUserMutation,
   useGetUsersQuery,
   useUpdateUserStatusMutation,
 } from "../../redux/api/UserApi";
-import { useSidebar } from "../../context/SidebarContext";
 import { toast } from "react-toastify";
 
 const { Option } = Select;
 
 const CustomerManagement = () => {
-  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
@@ -44,6 +43,55 @@ const CustomerManagement = () => {
 
   const [updateUserStatus] = useUpdateUserStatusMutation();
   const [deleteUser] = useDeleteUserMutation();
+
+  const exportToExcel = () => {
+    try {
+      const users = UserList?.data?.data || [];
+
+      const exportData = users.map((user: any) => ({
+        "Customer ID": `QC_${user.id}`,
+        Name: user.name || "N/A",
+        Email: user.email || "N/A",
+        Phone: user.phone_number || "N/A",
+        Role: (() => {
+          switch (user.user_role_id) {
+            case 1:
+              return "Admin";
+            case 2:
+              return "User";
+            case 3:
+              return "Vendor";
+            default:
+              return "Unknown";
+          }
+        })(),
+        Status: user.is_active ? "Active" : "Inactive",
+        "Created At": user.created_at
+          ? new Date(user.created_at).toLocaleDateString()
+          : "N/A",
+      }));
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      // Auto-fit columns
+      ws["!cols"] = exportData[0]
+        ? Object.keys(exportData[0]).map(() => ({ wch: 18 }))
+        : [];
+
+      XLSX.utils.book_append_sheet(wb, ws, "Customers");
+
+      const today = new Date().toISOString().split("T")[0];
+      const fileName = `Customers_${today}.xlsx`;
+
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      saveAs(new Blob([wbout], { type: "application/octet-stream" }), fileName);
+
+      toast.success("Customers exported successfully!");
+    } catch (error) {
+      toast.error("Failed to export customers");
+    }
+  };
 
   const handleDelete = async (id: any) => {
     await deleteUser(id).unwrap();
@@ -72,6 +120,12 @@ const CustomerManagement = () => {
   };
 
   const columns = [
+    {
+      title: "Customer ID",
+      dataIndex: "id",
+      render: (id: string) => `QC_${id}`,
+    },
+
     {
       title: "Name",
       dataIndex: "name",
@@ -209,22 +263,11 @@ const CustomerManagement = () => {
   ];
 
   return (
-    <div
-    // className={`flex-1  transition-all duration-300 ease-in-out ${
-    //   isExpanded || isHovered
-    //     ? "lg:pl-0 lg:w-[1190px]"
-    //     : "lg:pl-[0px] lg:w-[1390px]"
-    // } ${isMobileOpen ? "ml-0" : ""}`}
-    >
+    <div>
       <PageBreadcrumb pageTitle="Customers Management" />
 
       {/* Search and Status Filter Row */}
-      <Row
-        gutter={[16, 16]}
-        className="mb-4"
-        justify="space-between"
-        align="middle"
-      >
+      <Row gutter={[16, 16]} className="mb-4" align="middle">
         <Col xs={24} sm={14} md={12} lg={10} xl={8}>
           <Input.Search
             placeholder="Search by name, email or phone"
@@ -236,17 +279,14 @@ const CustomerManagement = () => {
           />
         </Col>
 
-        {/* <Col xs={24} sm={10} md={6} lg={5} xl={4}>
-          <Select
-            value={statusFilter}
-            onChange={(value) => setStatusFilter(value)}
-            style={{ width: "100%" }}
+        <Col xs={24} sm={12} md={4} lg={4}>
+          <button
+            onClick={exportToExcel}
+            className="bg-green-600 hover:bg-green-700 border-green-600 text-white flex items-center py-2 px-4 rounded-md gap-2 font-semibold"
           >
-            <Option value="All">All Status</Option>
-            <Option value="Active">Active</Option>
-            <Option value="Inactive">Inactive</Option>
-          </Select>
-        </Col> */}
+            <FileSpreadsheet size={20} className="text-white" /> Export Excel
+          </button>
+        </Col>
 
         {/* <Col
           xs={24}
@@ -283,6 +323,8 @@ const CustomerManagement = () => {
               pageSizeOptions: ["25", "50", "100"],
               showSizeChanger: true,
               defaultPageSize: 15,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} providers`,
             }}
           />
         </>
