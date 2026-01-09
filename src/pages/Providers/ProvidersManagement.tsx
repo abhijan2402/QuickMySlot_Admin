@@ -155,14 +155,7 @@ const ProvidersManagement = () => {
     {
       title: "Name",
       dataIndex: "name",
-      render: (text, record) => (
-        <a
-          style={{ color: "#465FFF", cursor: "pointer" }}
-          onClick={() => navigate(`/providers-details/${record.id}`)}
-        >
-          {text || "N/A"}
-        </a>
-      ),
+      render: (text, record) => text || "N/A",
     },
     { title: "Email", dataIndex: "email", render: (item) => item || "--" },
     {
@@ -259,7 +252,7 @@ const ProvidersManagement = () => {
               width: "50px",
             }}
           >
-            <EyeIcon size={16}/>
+            <EyeIcon size={16} />
           </Button>
         </div>
       ),
