@@ -136,7 +136,7 @@ const navItems: NavItem[] = [
       { name: "Ads", icon: <Image />, path: "/ads", pro: false },
       { name: "CMS", icon: <FileText />, path: "/cms", pro: false },
       {
-        name: "Notification",
+        name: "Notifications",
         icon: <Bell />,
         path: "/notification",
         pro: false,
