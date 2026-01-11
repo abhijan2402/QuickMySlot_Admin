@@ -10,7 +10,6 @@ import {
   message,
 } from "antd";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import { useSidebar } from "../../context/SidebarContext";
 import {
   useAddDiscountMutation,
   useGetsetDiscountQuery,
@@ -18,9 +17,9 @@ import {
   useUpdateDiscountMutation,
 } from "../../redux/api/setDiscount";
 import { Delete, Edit, Trash } from "lucide-react";
+import { toast } from "react-toastify";
 
 const SetDiscount = () => {
-  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
   // API hooks
   const { data, isFetching } = useGetsetDiscountQuery("");
@@ -49,11 +48,11 @@ const SetDiscount = () => {
         cashback_amount: values.discount,
       };
       await addDiscount(payload).unwrap();
-      message.success("Discount range added successfully!");
+      toast.success("Discount range added successfully!");
       addForm.resetFields();
       setIsAddModal(false);
     } catch (error) {
-      message.error(error?.data?.message || "Failed to add discount.");
+      toast.error(error?.data?.message || "Failed to add discount.");
     }
   };
   const handleAddCancel = () => {
@@ -83,10 +82,10 @@ const SetDiscount = () => {
         id: currentEdit.id,
       };
       await updateDiscount(payload).unwrap();
-      message.success("Discount updated successfully!");
+      toast.success("Discount updated successfully!");
       setIsEditModal(false);
     } catch (error) {
-      message.error(error?.data?.message || "Failed to update discount.");
+      toast.error(error?.data?.message || "Failed to update discount.");
     }
   };
   const handleEditCancel = () => setIsEditModal(false);
@@ -95,9 +94,9 @@ const SetDiscount = () => {
   const handleDelete = async (id) => {
     try {
       await deleteDiscount({ id }).unwrap();
-      message.success("Discount deleted successfully!");
+      toast.success("Discount deleted successfully!");
     } catch (error) {
-      message.error(error?.data?.message || "Failed to delete discount.");
+      toast.error(error?.data?.message || "Failed to delete discount.");
     }
   };
 
@@ -158,11 +157,11 @@ const SetDiscount = () => {
 
   return (
     <div
-      // className={`flex-1 transition-all duration-300 ease-in-out ${
-      //   isExpanded || isHovered
-      //     ? "lg:pl-0 lg:w-[1190px]"
-      //     : "lg:pl-[0px] lg:w-[1390px]"
-      // } ${isMobileOpen ? "ml-0" : ""}`}
+    // className={`flex-1 transition-all duration-300 ease-in-out ${
+    //   isExpanded || isHovered
+    //     ? "lg:pl-0 lg:w-[1190px]"
+    //     : "lg:pl-[0px] lg:w-[1390px]"
+    // } ${isMobileOpen ? "ml-0" : ""}`}
     >
       <PageBreadcrumb pageTitle="Set Discount Fixed Amount" />
       <Card style={{ marginTop: 24 }}>
@@ -208,7 +207,7 @@ const SetDiscount = () => {
             label="Discount (Fixed Amount)"
             rules={[{ required: true, message: "Enter discount" }]}
           >
-            <InputNumber min={0} max={100} style={{ width: "100%" }} />
+            <InputNumber min={0}  style={{ width: "100%" }} />
           </Form.Item>
         </Form>
       </Modal>
@@ -239,10 +238,10 @@ const SetDiscount = () => {
           </Form.Item>
           <Form.Item
             name="discount"
-            label="Discount (%)"
+            label="Discount (Fixed Amount)"
             rules={[{ required: true, message: "Enter discount" }]}
           >
-            <InputNumber min={0} max={100} style={{ width: "100%" }} />
+            <InputNumber min={0}  style={{ width: "100%" }} />
           </Form.Item>
         </Form>
       </Modal>

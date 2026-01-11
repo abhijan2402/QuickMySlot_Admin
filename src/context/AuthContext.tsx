@@ -25,17 +25,14 @@ export function AuthProvider({ children }) {
       const token = localStorage.getItem("qms_admin_token");
       const storedUser = localStorage.getItem("qms_admin_user");
 
-      console.log("🔍 Auth Check:", { token: !!token, hasUser: !!storedUser });
 
       if (token && storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        console.log("✅ Parsed User:", parsedUser);
         setUser(parsedUser);
         return true;
       }
       return false;
     } catch (error) {
-      console.error("Auth parse error:", error);
       localStorage.removeItem("qms_admin_user");
       localStorage.removeItem("qms_admin_token");
       setUser(null);
@@ -49,11 +46,9 @@ export function AuthProvider({ children }) {
   }, [checkAuth]);
 
   async function login(data: any) {
-    console.log("Login Data Received:", data);
 
     try {
       const response = await loginAdmin(data).unwrap();
-      console.log("Login API Response:", response);
 
       localStorage.setItem("qms_admin_token", response?.token || "");
       localStorage.setItem(
@@ -66,7 +61,6 @@ export function AuthProvider({ children }) {
 
       return { success: true };
     } catch (error) {
-      console.error("Login failed:", error);
       toast.error(error?.message || "Login failed! Please check credentials.");
       return { success: false, error };
     }

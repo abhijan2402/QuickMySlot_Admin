@@ -93,7 +93,6 @@ const Ads = () => {
 
   // Delete Ad
   const handleDelete = async (id: number) => {
-    console.log(id);
     try {
       let formData = new FormData();
       formData.append("id", id.toString());

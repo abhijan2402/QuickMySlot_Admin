@@ -69,7 +69,6 @@ export default function UserProfiles() {
 
     // Submit password changes here (e.g., API)
 
-    console.log("New password submitted:", passwordData.newPassword);
 
     // Close modal and reset
     setIsModalOpen(false);

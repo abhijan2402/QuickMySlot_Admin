@@ -67,7 +67,7 @@ const ProvidersManagement = () => {
   const exportToExcel = () => {
     try {
       const exportData = filteredData.map((provider: any) => ({
-        "Provider ID": `QP_${provider.id}`,
+        "Provider ID": `QP${provider.id}`,
         Name: provider.name || "N/A",
         Email: provider.email || "--",
         Phone: provider.phone_number || "--",
@@ -109,7 +109,7 @@ const ProvidersManagement = () => {
     return ProviderList.data.filter(
       (provider: any) =>
         provider.id.toString().toLowerCase().includes(query) ||
-        `QP_${provider.id}`.toLowerCase().includes(query) ||
+        `QP${provider.id}`.toLowerCase().includes(query) ||
         provider.business_name?.toLowerCase().includes(query) ||
         provider.name?.toLowerCase().includes(query) ||
         provider.email?.toLowerCase().includes(query) ||
@@ -143,7 +143,6 @@ const ProvidersManagement = () => {
       setIsCashbackModalOpen(false);
       form.resetFields();
     } catch (error) {
-      console.error("Error adding cashback:", error);
       toast.error("Failed to add cashback. Please try again.");
     }
   };
@@ -157,7 +156,7 @@ const ProvidersManagement = () => {
     {
       title: "Provider ID",
       dataIndex: "id",
-      render: (id: string) => `QP_${id}`,
+      render: (id: string) => `QP${id}`,
     },
 
     {

@@ -8,6 +8,7 @@ import {
   useUpdatefaqMutation,
   useDeletefaqMutation,
 } from "../../redux/api/faqApi";
+import { toast } from "react-toastify";
 
 const { TabPane } = Tabs;
 
@@ -36,7 +37,6 @@ const FaqManagement = () => {
   const data = activeRole === "customer" ? customerData : vendorData;
   const isLoading = activeRole === "customer" ? customerLoading : vendorLoading;
 
-  console.log("1", data);
 
   const [addFaq, { isLoading: adding }] = useAddfaqMutation();
   const [updateFaq, { isLoading: updating }] = useUpdatefaqMutation();
@@ -68,28 +68,26 @@ const FaqManagement = () => {
 
       if (editingFaq) {
         await updateFaq({ formData, id: editingFaq.id }).unwrap();
-        message.success("FAQ updated successfully!");
+        toast.success("FAQ updated successfully!");
       } else {
         await addFaq(formData).unwrap();
-        message.success("FAQ added successfully!");
+        toast.success("FAQ added successfully!");
       }
 
       setOpenModal(false);
       setEditingFaq(null);
       form.resetFields();
     } catch (error) {
-      console.error(error);
-      message.error("Failed to save FAQ. Please try again.");
+      toast.error("Failed to save FAQ. Please try again.");
     }
   };
 
   const handleDelete = async (record) => {
     try {
       await deleteFaq(record?.id).unwrap();
-      message.success("FAQ deleted successfully!");
+      toast.success("FAQ deleted successfully!");
     } catch (error) {
-      console.error(error);
-      message.error("Failed to delete FAQ.");
+      toast.error("Failed to delete FAQ.");
     }
   };
 

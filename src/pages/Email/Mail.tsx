@@ -33,10 +33,14 @@ const Mail = () => {
   const [updateEmail, { isLoading: isUpdating }] = useUpdateemailMutation();
   const [sendEmail, { isLoading: isSending }] = useSendemailMutation();
   const [deleteEmail] = useDeleteemailMutation();
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [userSearch, setUserSearch] = useState("");
+
   const { data: UserList, isLoading: loadingUsers } = useGetUsersQuery({
     search: userSearch,
+    page: currentPage,
+    per_page: pageSize,
   });
   const { data: providersData, isLoading: loadingProviders } =
     useGetprovidersQuery();
@@ -69,7 +73,6 @@ const Mail = () => {
 
   const openModal = (edit = null) => {
     if (edit) {
-      console.log("Editing:", edit);
       setFormValues({
         subject: edit.subject,
         message: edit.message,
@@ -163,7 +166,6 @@ const Mail = () => {
 
   const handleSendEmail = async (record) => {
     try {
-      console.log(record);
       const fd = new FormData();
       fd.append("subject", record.subject || record.title);
       fd.append("description", record.message);
@@ -183,7 +185,6 @@ const Mail = () => {
       await sendEmail({ formData: fd, id: record.id }).unwrap();
       toast.success("Email Send successfully.");
     } catch (error) {
-      console.log(error)
       toast.error(error?.data?.message || "Failed to Send.");
       
     }
@@ -312,12 +313,36 @@ const Mail = () => {
                 <Table
                   rowKey="id"
                   columns={[
-                    { title: "Name", dataIndex: "name" },
-                    { title: "Email", dataIndex: "email" },
+                    {
+                      title: "Name",
+                      dataIndex: "name",
+                      render: (text) => text || "--",
+                    },
+                    {
+                      title: "Email",
+                      dataIndex: "email",
+                      render: (text) => text || "--",
+                    },
                   ]}
                   dataSource={UserList?.data?.data || []}
                   loading={loadingUsers}
-                  pagination={{ pageSize: 5 }}
+                  pagination={{
+                    current: currentPage,
+                    pageSize: pageSize,
+                    total: UserList?.data?.total || 0,
+                    pageSizeOptions: ["25", "50", "100", "150", "200"],
+                    showSizeChanger: true,
+                    showTotal: (total, range) =>
+                      `${range[0]}-${range[1]} of ${total} users`,
+                    onChange: (page, size) => {
+                      setCurrentPage(page);
+                      setPageSize(size);
+                    },
+                    onShowSizeChange: (current, size) => {
+                      setPageSize(size);
+                      setCurrentPage(1);
+                    },
+                  }}
                   scroll={{ y: 240 }}
                   rowSelection={{
                     selectedRowKeys: selectedCustomerKeys,

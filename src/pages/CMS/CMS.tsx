@@ -35,7 +35,6 @@ const CMSPrivacyEditor = ({ userType }) => {
   }, [userType, selectedPolicyTab, refetch]);
 
   const handleSave = async () => {
-    console.log(data);
 
     if (!data?.data?.id) {
       toast.error("No CMS record found to update.");

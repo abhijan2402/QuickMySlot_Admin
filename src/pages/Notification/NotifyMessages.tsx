@@ -10,20 +10,13 @@ import {
 } from "../../redux/api/notificationApi";
 import { formatDate } from "../../utils/utils";
 import { toast } from "react-toastify";
-import { useGetUsersQuery } from "../../redux/api/UserApi";
 
 const NotifyMessages = () => {
   const { data, isFetching } = useGetnotificationQuery("");
   const [deleteAd] = useDeleteAdMutation();
   const [forwardNotification] = useForwardNotificationMutation();
 
-  const [userSearch, setUserSearch] = useState("");
 
-  const { data: UserList, isLoading } = useGetUsersQuery({
-    search: userSearch,
-  });
-
-  // console.log(UserList?.data?.data);
 
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -31,7 +24,6 @@ const NotifyMessages = () => {
 
   const handleNewNotification = async (record) => {
     try {
-      console.log(record);
       const fd = new FormData();
       // fd.append("subject", record.subject || record.title);
       fd.append("description", record.description);

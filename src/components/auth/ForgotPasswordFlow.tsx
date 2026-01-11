@@ -2,6 +2,7 @@ import { useState } from "react";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function ForgotPasswordFlow() {
   const [step, setStep] = useState(1);
@@ -14,24 +15,21 @@ export default function ForgotPasswordFlow() {
 
   const handleEmailSubmit = (e) => {
     e.preventDefault();
-    console.log("Forgot Password - Email submitted:", form.email);
     setStep(2);
   };
 
   const handleOtpSubmit = (e) => {
     e.preventDefault();
-    console.log("OTP entered:", form.otp);
     setStep(3);
   };
 
   const handleResetPasswordSubmit = (e) => {
     e.preventDefault();
     if (form.password !== form.confirm) {
-      alert("Passwords do not match!");
+      toast("Passwords do not match!");
       return;
     }
-    console.log("Password reset to:", form.password);
-    alert("Password reset successfully!");
+    toast("Password reset successfully!");
     // Navigate to sign-in page if needed
   };
 
@@ -123,13 +121,13 @@ export default function ForgotPasswordFlow() {
               >
                 ← Back
               </button>
-              <button
+              {/* <button
                 type="button"
                 onClick={() => console.log("Resend OTP")}
                 className="text-sm text-[#EE4E34] hover:underline"
               >
                 Resend OTP
-              </button>
+              </button> */}
             </div>
             <button
               type="submit"

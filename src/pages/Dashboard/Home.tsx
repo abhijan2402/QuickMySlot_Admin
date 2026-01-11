@@ -8,7 +8,6 @@ import { useGetdashboardQuery } from "../../redux/api/dashboard";
 
 export default function Home() {
   const { data } = useGetdashboardQuery("");
-  console.log(data)
   return (
     <>
       <PageMeta

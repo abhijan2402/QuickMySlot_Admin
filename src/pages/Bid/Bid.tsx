@@ -37,13 +37,11 @@ const Bid = () => {
   const navigate = useNavigate();
 
   const { data: category } = useGetcategoryQuery("");
-  console.log(category?.data);
   const { data, isLoading, refetch } = useGetbidQuery("");
   // const { data: bidDetals, isLoading: detailLoading } =
   //   useGetbidDetailsQuery(1);
   // const { data: bidEntry, isLoading: BitEntrydetailLoading } =
   //   useGetbidEntryListQuery(2);
-  // console.log(bidEntry);
   const [addBid] = useAddBidMutation();
   const [updateBid] = useUpdateBidMutation();
   const [deleteBid] = useDeleteBidMutation();
@@ -100,7 +98,6 @@ const Bid = () => {
       setIsModalVisible(false);
       refetch();
     } catch (error) {
-      console.error(error);
       toast.error("Something went wrong");
     }
   };

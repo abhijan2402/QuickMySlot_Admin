@@ -11,16 +11,18 @@ const { TabPane } = Tabs;
 
 const SendNotificationModal = ({ visible, onCancel }) => {
   const [userSearch, setUserSearch] = useState("");
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const { data: customersData, isLoading: loadingCustomers } = useGetUsersQuery(
     {
       search: userSearch,
+      page: currentPage,
+      per_page: pageSize,
     }
   );
   const { data: providersData, isLoading: loadingProviders } =
     useGetprovidersQuery();
 
-  // console.log(providersData?.data);
 
   const [sendNotification] = useSendNotificationMutation();
 
@@ -197,12 +199,27 @@ const SendNotificationModal = ({ visible, onCancel }) => {
                 columns={columns}
                 dataSource={customersData?.data?.data}
                 loading={loadingCustomers}
-                pagination={{ pageSize: 5 }}
+                pagination={{
+                  current: currentPage,
+                  pageSize: pageSize,
+                  total: customersData?.data?.total || 0,
+                  pageSizeOptions: ["25", "50", "100", "150", "200"],
+                  showSizeChanger: true,
+                  showTotal: (total, range) =>
+                    `${range[0]}-${range[1]} of ${total} users`,
+                  onChange: (page, size) => {
+                    setCurrentPage(page);
+                    setPageSize(size);
+                  },
+                  onShowSizeChange: (current, size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                  },
+                }}
                 scroll={{ y: 240 }}
                 rowSelection={{
                   selectedRowKeys: selectedCustomerKeys,
                   onChange: (keys) => {
-                    console.log("Selected customer keys:", keys);
                     setSelectedCustomerKeys(keys);
                   },
                   preserveSelectedRowKeys: true,
@@ -224,7 +241,6 @@ const SendNotificationModal = ({ visible, onCancel }) => {
                 rowSelection={{
                   selectedRowKeys: selectedProviderKeys,
                   onChange: (keys) => {
-                    console.log("Selected provider keys:", keys);
                     setSelectedProviderKeys(keys);
                   },
                   preserveSelectedRowKeys: true,

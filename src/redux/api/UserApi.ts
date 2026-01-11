@@ -26,7 +26,8 @@ export const UserApi = createApi({
     }),
 
     getUsers: builder.query({
-      query: ({ search }) => `admin/user/list?search=${search}`,
+      query: ({ search, page, per_page }) =>
+        `admin/user/list?search=${search}&per_page=${per_page}&page=${page}`,
       providesTags: ["User"],
     }),
 

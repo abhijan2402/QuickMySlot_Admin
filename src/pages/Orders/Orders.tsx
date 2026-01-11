@@ -39,7 +39,7 @@ const Orders = () => {
       const query = searchText.toLowerCase().trim();
       const matchesSearch =
         order.id.toString().toLowerCase().includes(query) ||
-        `QO_${order.id}`.toLowerCase().includes(query) ||
+        `QO${order.id}`.toLowerCase().includes(query) ||
         order.customer?.name?.toLowerCase().includes(query) ||
         order.vendor?.business_name?.toLowerCase().includes(query) ||
         order.vendor?.name?.toLowerCase().includes(query) ||
@@ -91,7 +91,7 @@ const Orders = () => {
       title: "Order ID",
       dataIndex: "id",
       key: "id",
-      render: (name) => `QO_${name}` || "--",
+      render: (name) => `QO${name}` || "--",
     },
 
     {
@@ -189,7 +189,7 @@ const Orders = () => {
     try {
       const exportData = filteredOrders.map((order: any) => ({
         Date: new Date(order.created_at).toLocaleDateString(),
-        "Order ID": `QO_${order.id}`,
+        "Order ID": `QO${order.id}`,
         Customer: order.customer?.name || "N/A",
         Vendor: order.vendor?.business_name || order.vendor?.name || "N/A",
         Amount: `₹${parseFloat(order.final_amount || 0).toFixed(2)}`,
@@ -216,7 +216,6 @@ const Orders = () => {
 
       toast.success("Orders exported successfully!");
     } catch (error) {
-      console.error("Export failed:", error);
       toast.error("Failed to export orders");
     }
   };

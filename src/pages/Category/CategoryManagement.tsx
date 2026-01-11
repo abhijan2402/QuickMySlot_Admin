@@ -7,6 +7,7 @@ import {
   useGetcategoryQuery,
   useAddCategoryMutation,
 } from "../../redux/api/categoryApi"; // addCategory mutation will be used for update
+import { toast } from "react-toastify";
 
 const CategoryManagement = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
@@ -53,15 +54,14 @@ const CategoryManagement = () => {
 
       // Use _id as the ID
       await updateCategory({ formData, id: editingCategory.id }).unwrap();
-      message.success("Category updated successfully!");
+      toast.success("Category updated successfully!");
       setOpenModal(false);
       setEditingCategory(null);
       form.resetFields();
       setFileList([]);
       refetch();
     } catch (error) {
-      console.error(error);
-      message.error("Failed to update category. Please try again.");
+      toast.error("Failed to update category. Please try again.");
     }
   };
 

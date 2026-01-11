@@ -53,7 +53,6 @@ const WhatsAppMedia = () => {
   const sendWhatsAppMessage = async (phone, title, description) => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        console.log(`WhatsApp message sent to ${phone} with title "${title}"`);
         resolve(true);
       }, 500);
     });

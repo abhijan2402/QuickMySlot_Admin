@@ -22,7 +22,6 @@ export default function SignInForm() {
 
     const res = await login(formData);
     setIsLoginIn(false);
-    // console.log(res);
     navigate("/");
   };
 

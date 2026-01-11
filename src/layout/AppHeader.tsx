@@ -82,7 +82,6 @@ const AppHeader: React.FC = () => {
       setChangePasswordModalOpen(false);
     } catch (error) {
       toast.error("Failed to change password. Please try again.");
-      console.error("Change password error:", error);
     } finally {
       setLoading(false);
     }

@@ -123,7 +123,6 @@ const SubscriptionManagement = () => {
       form.resetFields();
       refetch();
     } catch (error) {
-      console.error(error);
       message.error("Failed to save subscription. Please try again.");
     }
   };

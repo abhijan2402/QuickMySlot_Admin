@@ -35,6 +35,8 @@ const CustomerManagement = () => {
 
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -42,7 +44,11 @@ const CustomerManagement = () => {
     data: UserList,
     isLoading,
     error,
-  } = useGetUsersQuery({ search: searchText });
+  } = useGetUsersQuery({
+    search: searchText,
+    page: currentPage,
+    per_page: pageSize,
+  });
 
   const [updateUserStatus] = useUpdateUserStatusMutation();
   const [deleteUser] = useDeleteUserMutation();
@@ -57,7 +63,7 @@ const CustomerManagement = () => {
       const users = UserList?.data?.data || [];
 
       const exportData = users.map((user: any) => ({
-        "Customer ID": `QC_${user.id}`,
+        "Customer ID": `QC${user.id}`,
         Name: user.name || "N/A",
         Email: user.email || "N/A",
         Phone: user.phone_number || "N/A",
@@ -123,7 +129,7 @@ const CustomerManagement = () => {
     {
       title: "Customer ID",
       dataIndex: "id",
-      render: (id: string) => `QC_${id}`,
+      render: (id: string) => `QC${id}`,
     },
 
     {
@@ -325,11 +331,21 @@ const CustomerManagement = () => {
             rowKey="id"
             scroll={{ x: "max-content" }}
             pagination={{
-              pageSizeOptions: ["25", "50", "100"],
+              current: currentPage,
+              pageSize: pageSize,
+              total: UserList?.data?.total || 0,
+              pageSizeOptions: ["25", "50", "100", "150", "200"],
               showSizeChanger: true,
-              defaultPageSize: 15,
               showTotal: (total, range) =>
-                `${range[0]}-${range[1]} of ${total} providers`,
+                `${range[0]}-${range[1]} of ${total} users`,
+              onChange: (page, size) => {
+                setCurrentPage(page);
+                setPageSize(size);
+              },
+              onShowSizeChange: (current, size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              },
             }}
           />
         </>
