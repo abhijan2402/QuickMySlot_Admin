@@ -8,6 +8,7 @@ import {
   Popconfirm,
   Card,
   message,
+  Input,
 } from "antd";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import {
@@ -20,7 +21,6 @@ import { Delete, Edit, Trash } from "lucide-react";
 import { toast } from "react-toastify";
 
 const SetDiscount = () => {
-
   // API hooks
   const { data, isFetching } = useGetsetDiscountQuery("");
   const [addDiscount, { isLoading: isAdding }] = useAddDiscountMutation();
@@ -140,7 +140,6 @@ const SetDiscount = () => {
               danger
               icon={<Trash size={14} />}
               size="small"
-              loading={isDeleting}
               style={{
                 borderRadius: "6px",
                 background: "linear-gradient(90deg, #ff4d4f 0%, #ff7875 100%)",
@@ -191,23 +190,89 @@ const SetDiscount = () => {
           <Form.Item
             name="min"
             label="Min Price"
-            rules={[{ required: true, message: "Enter min price" }]}
+            rules={[
+              { required: true, message: "Enter min price" },
+              {
+                validator: (_, value) =>
+                  value === "" || /^\d+$/.test(value)
+                    ? Promise.resolve()
+                    : Promise.reject("Enter integers only"),
+              },
+            ]}
           >
-            <InputNumber min={0} style={{ width: "100%" }} />
+            <Input
+              type="text"
+              style={{ width: "100%" }}
+              placeholder="Enter integer (e.g. 50)"
+              maxLength={10}
+              onKeyPress={(e) => {
+                if (!/[0-9]/.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                // Also clean any pasted content
+                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+              }}
+            />
           </Form.Item>
+
           <Form.Item
             name="max"
             label="Max Price"
-            rules={[{ required: true, message: "Enter max price" }]}
+            rules={[
+              { required: true, message: "Enter max price" },
+              {
+                validator: (_, value) =>
+                  value === "" || /^\d+$/.test(value)
+                    ? Promise.resolve()
+                    : Promise.reject("Enter integers only"),
+              },
+            ]}
           >
-            <InputNumber min={0} style={{ width: "100%" }} />
+            <Input
+              type="text"
+              style={{ width: "100%" }}
+              placeholder="Enter integer (e.g. 1000)"
+              maxLength={10}
+              onKeyPress={(e) => {
+                if (!/[0-9]/.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+              }}
+            />
           </Form.Item>
+
           <Form.Item
             name="discount"
             label="Discount (Fixed Amount)"
-            rules={[{ required: true, message: "Enter discount" }]}
+            rules={[
+              { required: true, message: "Enter discount" },
+              {
+                validator: (_, value) =>
+                  value === "" || /^\d+$/.test(value)
+                    ? Promise.resolve()
+                    : Promise.reject("Enter integers only"),
+              },
+            ]}
           >
-            <InputNumber min={0}  style={{ width: "100%" }} />
+            <Input
+              type="text"
+              style={{ width: "100%" }}
+              placeholder="Enter integer (e.g. 50)"
+              maxLength={10}
+              onKeyPress={(e) => {
+                if (!/[0-9]/.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+              }}
+            />
           </Form.Item>
         </Form>
       </Modal>
@@ -225,23 +290,88 @@ const SetDiscount = () => {
           <Form.Item
             name="min"
             label="Min Price"
-            rules={[{ required: true, message: "Enter min price" }]}
+            rules={[
+              { required: true, message: "Enter min price" },
+              {
+                validator: (_, value) =>
+                  value === "" || /^\d+$/.test(value)
+                    ? Promise.resolve()
+                    : Promise.reject("Enter integers only"),
+              },
+            ]}
           >
-            <InputNumber min={0} style={{ width: "100%" }} />
+            <Input
+              type="text"
+              style={{ width: "100%" }}
+              placeholder="Enter integer (e.g. 100)"
+              maxLength={10}
+              onKeyPress={(e) => {
+                if (!/[0-9]/.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+              }}
+            />
           </Form.Item>
+
           <Form.Item
             name="max"
             label="Max Price"
-            rules={[{ required: true, message: "Enter max price" }]}
+            rules={[
+              { required: true, message: "Enter max price" },
+              {
+                validator: (_, value) =>
+                  value === "" || /^\d+$/.test(value)
+                    ? Promise.resolve()
+                    : Promise.reject("Enter integers only"),
+              },
+            ]}
           >
-            <InputNumber min={0} style={{ width: "100%" }} />
+            <Input
+              type="text"
+              style={{ width: "100%" }}
+              placeholder="Enter integer (e.g. 1000)"
+              maxLength={10}
+              onKeyPress={(e) => {
+                if (!/[0-9]/.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+              }}
+            />
           </Form.Item>
+
           <Form.Item
             name="discount"
             label="Discount (Fixed Amount)"
-            rules={[{ required: true, message: "Enter discount" }]}
+            rules={[
+              { required: true, message: "Enter discount" },
+              {
+                validator: (_, value) =>
+                  value === "" || /^\d+$/.test(value)
+                    ? Promise.resolve()
+                    : Promise.reject("Enter integers only"),
+              },
+            ]}
           >
-            <InputNumber min={0}  style={{ width: "100%" }} />
+            <Input
+              type="text"
+              style={{ width: "100%" }}
+              placeholder="Enter integer (e.g. 50)"
+              maxLength={10}
+              onKeyPress={(e) => {
+                if (!/[0-9]/.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+              }}
+            />
           </Form.Item>
         </Form>
       </Modal>

@@ -42,7 +42,7 @@ export const setDiscountApi = createApi({
     // Delete Ad
     deleteAd: builder.mutation({
       query: ({body, id}) => ({
-        url: `admin/cashback-setting-update/${id}`,
+        url: `admin/cashback-setting-delete/${id}`,
         method: "DELETE",
         body,
       }),
