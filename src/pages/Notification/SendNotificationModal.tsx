@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Input, DatePicker, Select, Table, message, Tabs } from "antd";
 import moment from "moment";
 import { useGetUsersQuery } from "../../redux/api/UserApi";
@@ -13,6 +13,8 @@ const SendNotificationModal = ({ visible, onCancel }) => {
   const [userSearch, setUserSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
+  const [providerPage, setProviderPage] = useState(1);
+  const [providerPageSize, setProviderPageSize] = useState(25);
   const { data: customersData, isLoading: loadingCustomers } = useGetUsersQuery(
     {
       search: userSearch,
@@ -22,7 +24,6 @@ const SendNotificationModal = ({ visible, onCancel }) => {
   );
   const { data: providersData, isLoading: loadingProviders } =
     useGetprovidersQuery();
-
 
   const [sendNotification] = useSendNotificationMutation();
 
@@ -71,7 +72,7 @@ const SendNotificationModal = ({ visible, onCancel }) => {
 
     try {
       const res = await sendNotification(formData).unwrap();
-      toast.success("Notification sent successfully!");
+      toast.success("Notification created successfully!");
       setSelectedCustomerKeys([]);
       setSelectedProviderKeys([]);
       onCancel();
@@ -103,7 +104,7 @@ const SendNotificationModal = ({ visible, onCancel }) => {
       } else if (error?.message) {
         errMsg = error.message;
       } else {
-        errMsg = "Failed to send notification! (Unknown error)";
+        errMsg = "Failed to create notification!";
       }
 
       toast.error(errMsg);
@@ -112,9 +113,28 @@ const SendNotificationModal = ({ visible, onCancel }) => {
 
   const handleTabChange = (key) => {
     setActiveTab(key);
+    setUserSearch("");
   };
 
   const columns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+      render: (t) => <span>{t || "--"}</span>,
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      render: (t) => <span>{t || "--"}</span>,
+    },
+  ];
+
+  const columnsCustomer = [
+    {
+      title: "Shop Name",
+      dataIndex: "business_name",
+      render: (t) => <span>{t || "--"}</span>,
+    },
     {
       title: "Name",
       dataIndex: "name",
@@ -134,6 +154,30 @@ const SendNotificationModal = ({ visible, onCancel }) => {
   //     u.name?.toLowerCase().includes(search.toLowerCase())
   //   );
   // };
+
+  const filteredProviders = useMemo(() => {
+    if (!providersData?.data || !userSearch) return providersData?.data || [];
+
+    const search = userSearch.toLowerCase();
+
+    return providersData.data.filter(
+      (provider) =>
+        provider?.business_name?.toLowerCase().includes(search) ||
+        provider?.name?.toLowerCase().includes(search) ||
+        provider?.email?.toLowerCase().includes(search)
+    );
+  }, [providersData, userSearch]);
+
+  const paginatedProviders = useMemo(() => {
+    const start = (providerPage - 1) * providerPageSize;
+    const end = start + providerPageSize;
+    return filteredProviders.slice(start, end);
+  }, [filteredProviders, providerPage, providerPageSize]);
+
+
+  useEffect(() => {
+    setProviderPage(1);
+  }, [userSearch]);
 
   return (
     <Modal
@@ -233,11 +277,27 @@ const SendNotificationModal = ({ visible, onCancel }) => {
                 rowKey={(record: any, index) =>
                   `provider_${record.id || index}`
                 }
-                columns={columns}
-                dataSource={providersData?.data}
+                columns={columnsCustomer}
+                dataSource={paginatedProviders}
                 loading={loadingProviders}
-                pagination={{ pageSize: 5 }}
                 scroll={{ y: 240 }}
+                pagination={{
+                  current: providerPage,
+                  pageSize: providerPageSize,
+                  total: filteredProviders.length,
+                  pageSizeOptions: ["25", "50", "100"],
+                  showSizeChanger: true,
+                  showTotal: (total, range) =>
+                    `${range[0]}-${range[1]} of ${total} providers`,
+                  onChange: (page, size) => {
+                    setProviderPage(page);
+                    setProviderPageSize(size);
+                  },
+                  onShowSizeChange: (current, size) => {
+                    setProviderPage(1);
+                    setProviderPageSize(size);
+                  },
+                }}
                 rowSelection={{
                   selectedRowKeys: selectedProviderKeys,
                   onChange: (keys) => {

@@ -16,8 +16,6 @@ const NotifyMessages = () => {
   const [deleteAd] = useDeleteAdMutation();
   const [forwardNotification] = useForwardNotificationMutation();
 
-
-
   const [modalVisible, setModalVisible] = useState(false);
 
   const openModal = () => setModalVisible(true);
@@ -41,9 +39,10 @@ const NotifyMessages = () => {
       );
 
       await forwardNotification({ formData: fd, id: record.id }).unwrap();
-      toast.success("Email Send successfully.");
+      toast.success("Notification Send successfully.");
     } catch (error) {
-      toast.error(error?.message || "Failed to Send.");
+      console.log(error);
+      toast.error(error?.data?.message || "Failed to Send.");
     }
   };
 
@@ -56,20 +55,25 @@ const NotifyMessages = () => {
     { title: "Title", dataIndex: "title", key: "title" },
     { title: "Description", dataIndex: "description", key: "description" },
     {
-      title: "Is All Users",
+      title: "Audience",
       dataIndex: "is_all_users",
       key: "is_all_users",
-      render: (isAll, record) => {
-        if (isAll) {
-          return <span>All Users</span>;
+      render: (all, row) => {
+        if (all) return "All Users";
+
+        const users = row.user_ids || [];
+        const providers = row.provider_ids || [];
+        const combined = [...users, ...providers];
+
+        if (combined.length === 1) {
+          return "Singel User";
         }
-        if (record.user_ids?.length) {
-          return <span>{record.user_ids.join(", ")}</span>;
+
+        if (combined.length > 1) {
+          return combined.join(", ");
         }
-        if (record.user && record.user.name) {
-          return <span>{record.user.name}</span>;
-        }
-        return <span>Specific User</span>;
+
+        return "—";
       },
     },
 

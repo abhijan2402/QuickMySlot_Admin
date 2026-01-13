@@ -25,6 +25,7 @@ import {
 } from "../../redux/api/UserApi";
 import { toast } from "react-toastify";
 import UserDetailsModal from "./UserDetailsModal";
+import { formatDate } from "../../utils/utils";
 
 const { Option } = Select;
 
@@ -220,7 +221,7 @@ const CustomerManagement = () => {
     {
       title: "Created At",
       dataIndex: "created_at",
-      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
+      render: (date) => (formatDate(date)|| "N/A"),
     },
     // {
     //   title: "Updated At",

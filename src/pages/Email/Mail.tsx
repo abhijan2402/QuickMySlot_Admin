@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Table,
@@ -35,6 +35,8 @@ const Mail = () => {
   const [deleteEmail] = useDeleteemailMutation();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
+  const [providerPage, setProviderPage] = useState(1);
+  const [providerPageSize, setProviderPageSize] = useState(25);
   const [userSearch, setUserSearch] = useState("");
 
   const { data: UserList, isLoading: loadingUsers } = useGetUsersQuery({
@@ -51,12 +53,8 @@ const Mail = () => {
   const [activeTab, setActiveTab] = useState("customers");
 
   // Selected IDs for Customers & Providers
-  const [selectedCustomerKeys, setSelectedCustomerKeys] = useState<number[]>(
-    []
-  );
-  const [selectedProviderKeys, setSelectedProviderKeys] = useState<number[]>(
-    []
-  );
+  const [selectedCustomerKeys, setSelectedCustomerKeys] = useState([]);
+  const [selectedProviderKeys, setSelectedProviderKeys] = useState([]);
 
   // Form Values
   const [formValues, setFormValues] = useState({
@@ -186,7 +184,6 @@ const Mail = () => {
       toast.success("Email Send successfully.");
     } catch (error) {
       toast.error(error?.data?.message || "Failed to Send.");
-      
     }
   };
 
@@ -204,10 +201,23 @@ const Mail = () => {
       title: "Audience",
       dataIndex: "is_all_users",
       key: "is_all_users",
-      render: (all, row) =>
-        all
-          ? "All Users"
-          : [...(row.user_ids || []), ...(row.provider_ids || [])].join(", "),
+      render: (all, row) => {
+        if (all) return "All Users";
+
+        const users = row.user_ids || [];
+        const providers = row.provider_ids || [];
+        const combined = [...users, ...providers];
+
+        if (combined.length === 1) {
+          return "Singel User";
+        }
+
+        if (combined.length > 1) {
+          return combined.join(", ");
+        }
+
+        return "—";
+      },
     },
     {
       title: "Actions",
@@ -232,6 +242,52 @@ const Mail = () => {
       ),
     },
   ];
+
+  const columnsCustomer = [
+    {
+      title: "Shop Name",
+      dataIndex: "business_name",
+      render: (t) => <span>{t || "--"}</span>,
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      render: (t) => <span>{t || "--"}</span>,
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      render: (t) => <span>{t || "--"}</span>,
+    },
+  ];
+
+  const filteredProviders = useMemo(() => {
+    if (!providersData?.data || !userSearch) return providersData?.data || [];
+
+    const search = userSearch.toLowerCase();
+
+    return providersData.data.filter(
+      (provider) =>
+        provider?.business_name?.toLowerCase().includes(search) ||
+        provider?.name?.toLowerCase().includes(search) ||
+        provider?.email?.toLowerCase().includes(search)
+    );
+  }, [providersData, userSearch]);
+
+  const paginatedProviders = useMemo(() => {
+    const start = (providerPage - 1) * providerPageSize;
+    const end = start + providerPageSize;
+    return filteredProviders.slice(start, end);
+  }, [filteredProviders, providerPage, providerPageSize]);
+
+  useEffect(() => {
+    setProviderPage(1);
+  }, [userSearch]);
+
+    const handleTabChange = (key) => {
+      setActiveTab(key);
+      setUserSearch("");
+    };
 
   return (
     <div style={{ padding: 24 }}>
@@ -308,7 +364,7 @@ const Mail = () => {
               style={{ marginBottom: 12 }}
             />
 
-            <Tabs activeKey={activeTab} onChange={setActiveTab}>
+            <Tabs activeKey={activeTab} onChange={handleTabChange}>
               <TabPane tab="Customers" key="customers">
                 <Table
                   rowKey="id"
@@ -354,18 +410,35 @@ const Mail = () => {
 
               <TabPane tab="Providers" key="providers">
                 <Table
-                  rowKey="id"
-                  columns={[
-                    { title: "Name", dataIndex: "name" },
-                    { title: "Email", dataIndex: "email" },
-                  ]}
-                  dataSource={providersData?.data || []}
+                  rowKey={(record: any, index) =>
+                    `provider_${record.id || index}`
+                  }
+                  columns={columnsCustomer}
+                  dataSource={paginatedProviders}
                   loading={loadingProviders}
-                  pagination={{ pageSize: 5 }}
                   scroll={{ y: 240 }}
+                  pagination={{
+                    current: providerPage,
+                    pageSize: providerPageSize,
+                    total: filteredProviders.length,
+                    pageSizeOptions: ["25", "50", "100"],
+                    showSizeChanger: true,
+                    showTotal: (total, range) =>
+                      `${range[0]}-${range[1]} of ${total} providers`,
+                    onChange: (page, size) => {
+                      setProviderPage(page);
+                      setProviderPageSize(size);
+                    },
+                    onShowSizeChange: (current, size) => {
+                      setProviderPage(1);
+                      setProviderPageSize(size);
+                    },
+                  }}
                   rowSelection={{
                     selectedRowKeys: selectedProviderKeys,
-                    onChange: (keys: any) => setSelectedProviderKeys(keys),
+                    onChange: (keys) => {
+                      setSelectedProviderKeys(keys);
+                    },
                     preserveSelectedRowKeys: true,
                   }}
                 />

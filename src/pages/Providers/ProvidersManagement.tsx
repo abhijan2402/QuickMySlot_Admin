@@ -28,6 +28,7 @@ import { toast } from "react-toastify";
 import ProviderDetailsModal from "./ProviderDetailsModal";
 import { useGetcategoryQuery } from "../../redux/api/categoryApi";
 import { useDeleteUserMutation } from "../../redux/api/UserApi";
+import { formatDate } from "../../utils/utils";
 
 const { Option } = Select;
 
@@ -208,6 +209,11 @@ const ProvidersManagement = () => {
         ) : (
           <Tag color="default">Not Active</Tag>
         ),
+    },
+    {
+      title: "Created At",
+      dataIndex: "created_at",
+      render: (date) => formatDate(date) || "N/A",
     },
     {
       title: "Action",
