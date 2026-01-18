@@ -10,6 +10,8 @@ interface OrderDetailsModalProps {
 const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order }) => {
   if (!order) return null;
 
+  console.log(order);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
@@ -176,6 +178,12 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order }) => {
               </Descriptions.Item>
               <Descriptions.Item label="Convenience Fee">
                 {formatCurrency(order.convenience_fee)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Discount">
+                {formatCurrency(order.discount_amount)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Cashback">
+                {formatCurrency(order.cashback_amount)}
               </Descriptions.Item>
               <Descriptions.Item label="Final Amount">
                 <strong>{formatCurrency(order.final_amount)}</strong>
