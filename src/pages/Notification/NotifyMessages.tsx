@@ -123,7 +123,7 @@ const NotifyMessages = () => {
 
       <SendNotificationModal
         visible={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        setModalVisible={setModalVisible}
       />
     </div>
   );

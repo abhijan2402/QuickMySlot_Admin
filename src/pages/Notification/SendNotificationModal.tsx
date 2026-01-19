@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 const { Option } = Select;
 const { TabPane } = Tabs;
 
-const SendNotificationModal = ({ visible, onCancel }) => {
+const SendNotificationModal = ({ visible, setModalVisible }) => {
   const [userSearch, setUserSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
@@ -44,6 +44,28 @@ const SendNotificationModal = ({ visible, onCancel }) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
   };
 
+
+
+  const resetForm = () => {
+    setFormValues({
+      title: "",
+      description: "",
+      time: null,
+      audienceType: "all",
+    });
+
+    setUserSearch("");
+    setActiveTab("customers");
+
+    setSelectedCustomerKeys([]);
+    setSelectedProviderKeys([]);
+
+    setCurrentPage(1);
+    setPageSize(25);
+    setProviderPage(1);
+    setProviderPageSize(25);
+  };
+
   const handleSend = async () => {
     if (!formValues.title.trim() || !formValues.description.trim()) {
       message.error("Title and description are required!");
@@ -74,7 +96,7 @@ const SendNotificationModal = ({ visible, onCancel }) => {
       const res = await sendNotification(formData).unwrap();
       toast.success("Notification created successfully!");
       setSelectedCustomerKeys([]);
-      setSelectedProviderKeys([]);
+      resetForm();
       onCancel();
     } catch (error) {
       // Display most detailed error message possible
@@ -110,6 +132,11 @@ const SendNotificationModal = ({ visible, onCancel }) => {
       toast.error(errMsg);
     }
   };
+
+    const onCancel = () => {
+      setModalVisible(false);
+      resetForm();
+    };
 
   const handleTabChange = (key) => {
     setActiveTab(key);
@@ -173,7 +200,6 @@ const SendNotificationModal = ({ visible, onCancel }) => {
     const end = start + providerPageSize;
     return filteredProviders.slice(start, end);
   }, [filteredProviders, providerPage, providerPageSize]);
-
 
   useEffect(() => {
     setProviderPage(1);
