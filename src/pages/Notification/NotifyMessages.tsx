@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Table, Space, Popconfirm, message } from "antd";
+import { Button, Table, Space, Popconfirm, message, Pagination } from "antd";
 import moment from "moment";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import SendNotificationModal from "./SendNotificationModal";
@@ -8,22 +8,28 @@ import {
   useForwardNotificationMutation,
   useGetnotificationQuery,
 } from "../../redux/api/notificationApi";
-import { formatDate } from "../../utils/utils";
+import { formatDate, formatTime } from "../../utils/utils";
 import { toast } from "react-toastify";
 
 const NotifyMessages = () => {
-  const { data, isFetching } = useGetnotificationQuery("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // Update query with pagination params
+  const { data, isFetching } = useGetnotificationQuery({
+    page: currentPage,
+    limit: pageSize,
+  });
+
   const [deleteAd] = useDeleteAdMutation();
   const [forwardNotification] = useForwardNotificationMutation();
-
-  const [modalVisible, setModalVisible] = useState(false);
 
   const openModal = () => setModalVisible(true);
 
   const handleNewNotification = async (record) => {
     try {
       const fd = new FormData();
-      // fd.append("subject", record.subject || record.title);
       fd.append("description", record.description);
       fd.append("title", record.title);
       if (record.scheduled_at) {
@@ -34,11 +40,17 @@ const NotifyMessages = () => {
       }
       fd.append("is_all_users", record.audienceType === "all" ? "1" : "0");
 
-      record.user_ids.forEach((id: any, i: any) =>
-        fd.append(`user_ids[${i}]`, id)
-      );
+      if (record.user_ids) {
+        record.user_ids.forEach((id: any, i: any) =>
+          fd.append(`user_ids[${i}]`, id)
+        );
+      }
 
-      await forwardNotification({ formData: fd, id: record.id }).unwrap();
+      const res = await forwardNotification({
+        formData: fd,
+        id: record.id,
+      }).unwrap();
+      console.log(res);
       toast.success("Notification Send successfully.");
     } catch (error) {
       console.log(error);
@@ -66,22 +78,32 @@ const NotifyMessages = () => {
         const combined = [...users, ...providers];
 
         if (combined.length === 1) {
-          return "Singel User";
+          return "Single User";
         }
 
         if (combined.length > 1) {
-          return combined.join(", ");
+          return `${combined.length} Users`;
         }
 
         return "—";
       },
     },
-
     {
-      title: "Time",
-      dataIndex: "created_at",
-      key: "created_at",
-      render: (time) => (time ? formatDate(time) : "N/A"),
+      title: "Schedule At",
+      key: "schedule_info",
+      render: (record) => {
+        if (record.schedule_date || record.schedule_time) {
+          const date = record.schedule_date
+            ? formatDate(record.schedule_date)
+            : "N/A";
+          const time = record.schedule_time
+            ? formatTime(record.schedule_time)
+            : "N/A";
+          return `${date} ${time}`;
+        }
+
+        return record.created_at ? formatDate(record.created_at) : "N/A";
+      },
     },
     {
       title: "Actions",
@@ -92,34 +114,71 @@ const NotifyMessages = () => {
             title="Delete this notification?"
             onConfirm={() => deleteNotification(record.id)}
           >
-            <Button danger>Delete</Button>
+            <Button danger size="small">
+              Delete
+            </Button>
           </Popconfirm>
           <Popconfirm
             title="Send this notification?"
             onConfirm={() => handleNewNotification(record)}
           >
-            <Button type="primary">Send</Button>
+            <Button type="primary" size="small">
+              Send
+            </Button>
           </Popconfirm>
         </Space>
       ),
     },
   ];
 
+  // Handle pagination change
+  const handlePaginationChange = (page, pageSizeChanged) => {
+    setCurrentPage(page);
+    if (pageSizeChanged) {
+      setPageSize(pageSizeChanged);
+      setCurrentPage(1);
+    }
+  };
+
+  // Get pagination meta from API response
+  const total = data?.data.length || 0;
+  console.log(total);
+  const paginationConfig = {
+    current: currentPage,
+    pageSize: pageSize,
+    total: total,
+    showSizeChanger: true,
+    showQuickJumper: true,
+    showTotal: (total, range) =>
+      `${range[0]}-${range[1]} of ${total} notifications`,
+    onChange: handlePaginationChange,
+    onShowSizeChange: handlePaginationChange,
+  };
+
   return (
     <div style={{ padding: 24 }}>
       <PageBreadcrumb pageTitle="Notification History" />
-      <Button type="primary" style={{ marginBottom: 16 }} onClick={openModal}>
-        Create Notification
-      </Button>
+      <div style={{ marginBottom: 16 }}>
+        <Button type="primary" onClick={openModal}>
+          Create Notification
+        </Button>
+      </div>
 
       <Table
         columns={columns}
-        dataSource={data?.data}
+        dataSource={data?.data || []}
         rowKey="id"
-        pagination={{ pageSize: 5 }}
-        scroll={{ x: 1000 }}
         loading={isFetching}
+        pagination={false}
+        scroll={{ x: 1000 }}
       />
+
+      {/* Custom Ant Design Pagination */}
+      {total > 0 && (
+        <div style={{ marginTop: 16, textAlign: "right" }}>
+          <Pagination {...paginationConfig} />
+        </div>
+      )}
 
       <SendNotificationModal
         visible={modalVisible}

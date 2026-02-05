@@ -13,6 +13,18 @@ export function formatDate(dateInput: string) {
   });
 }
 
+export const formatTime = (timeString) => {
+  if (!timeString) return "N/A";
+
+  const time = new Date(`1970-01-01T${timeString}`);
+  return time.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true, // 12-hour with AM/PM
+  });
+};
+
+
 // Function to get status text from status value, safely handling null/undefined
 export function getStatusTextAndColor(statusValue: string) {
   if (!statusValue || typeof statusValue !== "string")

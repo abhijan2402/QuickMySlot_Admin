@@ -10,6 +10,7 @@ import {
   Popconfirm,
   message,
   Tabs,
+  TimePicker,
 } from "antd";
 import moment from "moment";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -23,6 +24,7 @@ import {
 import { toast } from "react-toastify";
 import { useGetUsersQuery } from "../../redux/api/UserApi";
 import { useGetprovidersQuery } from "../../redux/api/providerApi";
+import { formatDate, formatTime } from "../../utils/utils";
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -38,6 +40,9 @@ const Mail = () => {
   const [providerPage, setProviderPage] = useState(1);
   const [providerPageSize, setProviderPageSize] = useState(25);
   const [userSearch, setUserSearch] = useState("");
+
+  const [currentPageEmail, setCurrentEmailPage] = useState(1);
+  const [pageEmailSize, setPageEmailSize] = useState(10);
 
   const { data: UserList, isLoading: loadingUsers } = useGetUsersQuery({
     search: userSearch,
@@ -61,7 +66,8 @@ const Mail = () => {
     subject: "",
     message: "",
     title: "",
-    scheduled_at: null,
+    schedule_date: null, // Date only
+    schedule_time: null, // Time only
     audienceType: "all",
   });
 
@@ -75,7 +81,8 @@ const Mail = () => {
         subject: edit.subject,
         message: edit.message,
         title: edit.title,
-        scheduled_at: edit.scheduled_at ? moment(edit.scheduled_at) : null,
+        schedule_date: edit.schedule_date ? moment(edit.schedule_date) : null,
+        schedule_time: edit.schedule_time ? moment(edit.schedule_time) : null,
         audienceType: edit.is_all_users ? "all" : "individual",
       });
       setSelectedCustomerKeys(edit.user_ids || []);
@@ -86,7 +93,8 @@ const Mail = () => {
         subject: "",
         message: "",
         title: "",
-        scheduled_at: null,
+        schedule_date: null,
+        schedule_time: null,
         audienceType: "all",
       });
       setSelectedCustomerKeys([]);
@@ -102,11 +110,17 @@ const Mail = () => {
     fd.append("subject", formValues.subject || formValues.title);
     fd.append("message", formValues.message);
     fd.append("title", formValues.title);
-    if (formValues.scheduled_at) {
-      fd.append(
-        "scheduled_at",
-        formValues.scheduled_at.format("YYYY-MM-DD HH:mm:ss")
-      );
+    // if (formValues.scheduled_at) {
+    //   fd.append(
+    //     "scheduled_at",
+    //     formValues.scheduled_at.format("YYYY-MM-DD HH:mm:ss")
+    //   );
+    // }
+    if (formValues.schedule_date) {
+      fd.append("schedule_date", formValues.schedule_date.format("YYYY-MM-DD"));
+    }
+    if (formValues.schedule_time) {
+      fd.append("schedule_time", formValues.schedule_time.format("HH:mm:ss"));
     }
     fd.append("is_all_users", formValues.audienceType === "all" ? "1" : "0");
 
@@ -176,9 +190,11 @@ const Mail = () => {
       }
       fd.append("is_all_users", record.audienceType === "all" ? "1" : "0");
 
-      record.user_ids.forEach((id: any, i: any) =>
-        fd.append(`user_ids[${i}]`, id)
-      );
+      if (record.user_ids) {
+        record.user_ids.forEach((id: any, i: any) =>
+          fd.append(`user_ids[${i}]`, id)
+        );
+      }
 
       await sendEmail({ formData: fd, id: record.id }).unwrap();
       toast.success("Email Send successfully.");
@@ -191,11 +207,21 @@ const Mail = () => {
     { title: "Title", dataIndex: "title", key: "title" },
     { title: "Description", dataIndex: "message", key: "message" },
     {
-      title: "Scheduled Time",
-      dataIndex: "scheduled_at",
-      key: "scheduled_at",
-      render: (time) =>
-        time ? moment(time).format("YYYY-MM-DD HH:mm") : "Immediate",
+      title: "Schedule At",
+      key: "schedule_info",
+      render: (record) => {
+        if (record.schedule_date || record.schedule_time) {
+          const date = record.schedule_date
+            ? formatDate(record.schedule_date)
+            : "N/A";
+          const time = record.schedule_time
+            ? formatTime(record.schedule_time)
+            : "N/A";
+          return `${date} ${time}`;
+        }
+
+        return record.created_at ? formatDate(record.created_at) : "N/A";
+      },
     },
     {
       title: "Audience",
@@ -284,10 +310,10 @@ const Mail = () => {
     setProviderPage(1);
   }, [userSearch]);
 
-    const handleTabChange = (key) => {
-      setActiveTab(key);
-      setUserSearch("");
-    };
+  const handleTabChange = (key) => {
+    setActiveTab(key);
+    setUserSearch("");
+  };
 
   return (
     <div style={{ padding: 24 }}>
@@ -305,7 +331,23 @@ const Mail = () => {
         columns={columns}
         dataSource={data?.data || []}
         rowKey="id"
-        pagination={{ pageSize: 5 }}
+        pagination={{
+          current: currentPageEmail,
+          pageSize: pageEmailSize,
+          total: data?.data.length,
+          pageSizeOptions: ["25", "50", "100"],
+          showSizeChanger: true,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} email`,
+          onChange: (page, size) => {
+            setCurrentEmailPage(page);
+            setPageEmailSize(size);
+          },
+          onShowSizeChange: (current, size) => {
+            setCurrentEmailPage(1);
+            setPageEmailSize(size);
+          },
+        }}
         loading={isFetching}
         scroll={{ x: 1000 }}
       />
@@ -339,10 +381,16 @@ const Mail = () => {
           style={{ marginBottom: 12 }}
         />
         <DatePicker
-          showTime
+          placeholder="Scheduled Date (optional)"
+          value={formValues.schedule_date}
+          onChange={(value) => handleInputChange("schedule_date", value)}
+          style={{ width: "100%", marginBottom: 12 }}
+        />
+        <TimePicker
           placeholder="Scheduled Time (optional)"
-          value={formValues.scheduled_at}
-          onChange={(value) => handleInputChange("scheduled_at", value)}
+          value={formValues.schedule_time}
+          format="HH:mm:ss"
+          onChange={(value) => handleInputChange("schedule_time", value)}
           style={{ width: "100%", marginBottom: 12 }}
         />
         <Select

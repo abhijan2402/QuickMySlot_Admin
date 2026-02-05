@@ -1,5 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Modal, Input, DatePicker, Select, Table, message, Tabs } from "antd";
+import {
+  Modal,
+  Input,
+  DatePicker,
+  Select,
+  Table,
+  message,
+  Tabs,
+  TimePicker,
+} from "antd";
 import moment from "moment";
 import { useGetUsersQuery } from "../../redux/api/UserApi";
 import { useGetprovidersQuery } from "../../redux/api/providerApi";
@@ -30,7 +39,8 @@ const SendNotificationModal = ({ visible, setModalVisible }) => {
   const [formValues, setFormValues] = useState({
     title: "",
     description: "",
-    time: null,
+    schedule_date: null,
+    schedule_time: null,
     audienceType: "all",
   });
 
@@ -44,13 +54,12 @@ const SendNotificationModal = ({ visible, setModalVisible }) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
   };
 
-
-
   const resetForm = () => {
     setFormValues({
       title: "",
       description: "",
-      time: null,
+      schedule_date: null,
+      schedule_time: null,
       audienceType: "all",
     });
 
@@ -85,6 +94,18 @@ const SendNotificationModal = ({ visible, setModalVisible }) => {
       "is_all_users",
       formValues.audienceType === "all" ? "1" : "0"
     );
+    if (formValues.schedule_date) {
+      formData.append(
+        "schedule_date",
+        formValues.schedule_date.format("YYYY-MM-DD")
+      );
+    }
+    if (formValues.schedule_time) {
+      formData.append(
+        "schedule_time",
+        formValues.schedule_time.format("HH:mm:ss")
+      );
+    }
 
     if (formValues.audienceType !== "all") {
       selectedIds.forEach((id, index) => {
@@ -133,10 +154,10 @@ const SendNotificationModal = ({ visible, setModalVisible }) => {
     }
   };
 
-    const onCancel = () => {
-      setModalVisible(false);
-      resetForm();
-    };
+  const onCancel = () => {
+    setModalVisible(false);
+    resetForm();
+  };
 
   const handleTabChange = (key) => {
     setActiveTab(key);
@@ -228,17 +249,21 @@ const SendNotificationModal = ({ visible, setModalVisible }) => {
         rows={3}
         style={{ marginBottom: 12 }}
       />
-      {/* 
-      
-      
+
       <DatePicker
         showTime
         placeholder="Select time (optional)"
-        value={formValues.time}
-        onChange={(value) => handleChange("time", value)}
+        value={formValues.schedule_date}
+        onChange={(value) => handleChange("schedule_date", value)}
         style={{ width: "100%", marginBottom: 12 }}
       />
-      */}
+      <TimePicker
+        placeholder="Scheduled Time (optional)"
+        value={formValues.schedule_time}
+        format="HH:mm:ss"
+        onChange={(value) => handleChange("schedule_time", value)}
+        style={{ width: "100%", marginBottom: 12 }}
+      />
 
       <Select
         value={formValues.audienceType}
