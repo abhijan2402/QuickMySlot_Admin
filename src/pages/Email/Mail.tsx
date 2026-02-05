@@ -384,6 +384,9 @@ const Mail = () => {
           placeholder="Scheduled Date (optional)"
           value={formValues.schedule_date}
           onChange={(value) => handleInputChange("schedule_date", value)}
+          disabledDate={(current) => {
+            return current && current < moment().startOf("day");
+          }}
           style={{ width: "100%", marginBottom: 12 }}
         />
         <TimePicker
