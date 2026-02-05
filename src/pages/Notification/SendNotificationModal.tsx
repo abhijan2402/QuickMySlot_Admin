@@ -40,7 +40,7 @@ const SendNotificationModal = ({ visible, setModalVisible }) => {
     title: "",
     description: "",
     schedule_date: null,
-    schedule_time: null,
+    scheduled_time: null,
     audienceType: "all",
   });
 
@@ -59,7 +59,7 @@ const SendNotificationModal = ({ visible, setModalVisible }) => {
       title: "",
       description: "",
       schedule_date: null,
-      schedule_time: null,
+      scheduled_time: null,
       audienceType: "all",
     });
 
@@ -100,10 +100,10 @@ const SendNotificationModal = ({ visible, setModalVisible }) => {
         formValues.schedule_date.format("YYYY-MM-DD")
       );
     }
-    if (formValues.schedule_time) {
+    if (formValues.scheduled_time) {
       formData.append(
-        "schedule_time",
-        formValues.schedule_time.format("HH:mm:ss")
+        "scheduled_time",
+        formValues.scheduled_time.format("HH:mm:ss")
       );
     }
 
@@ -261,9 +261,9 @@ const SendNotificationModal = ({ visible, setModalVisible }) => {
       />
       <TimePicker
         placeholder="Scheduled Time (optional)"
-        value={formValues.schedule_time}
+        value={formValues.scheduled_time}
         format="HH:mm:ss"
-        onChange={(value) => handleChange("schedule_time", value)}
+        onChange={(value) => handleChange("scheduled_time", value)}
         style={{ width: "100%", marginBottom: 12 }}
       />
 

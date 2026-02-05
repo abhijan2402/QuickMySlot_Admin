@@ -92,12 +92,12 @@ const NotifyMessages = () => {
       title: "Schedule At",
       key: "schedule_info",
       render: (record) => {
-        if (record.schedule_date || record.schedule_time) {
+        if (record.schedule_date || record.scheduled_time) {
           const date = record.schedule_date
             ? formatDate(record.schedule_date)
             : "N/A";
-          const time = record.schedule_time
-            ? formatTime(record.schedule_time)
+          const time = record.scheduled_time
+            ? formatTime(record.scheduled_time)
             : "N/A";
           return `${date} ${time}`;
         }

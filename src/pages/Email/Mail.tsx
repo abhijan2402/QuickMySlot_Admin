@@ -67,7 +67,7 @@ const Mail = () => {
     message: "",
     title: "",
     schedule_date: null, // Date only
-    schedule_time: null, // Time only
+    scheduled_time: null, // Time only
     audienceType: "all",
   });
 
@@ -82,7 +82,7 @@ const Mail = () => {
         message: edit.message,
         title: edit.title,
         schedule_date: edit.schedule_date ? moment(edit.schedule_date) : null,
-        schedule_time: edit.schedule_time ? moment(edit.schedule_time) : null,
+        scheduled_time: edit.scheduled_time ? moment(edit.scheduled_time) : null,
         audienceType: edit.is_all_users ? "all" : "individual",
       });
       setSelectedCustomerKeys(edit.user_ids || []);
@@ -94,7 +94,7 @@ const Mail = () => {
         message: "",
         title: "",
         schedule_date: null,
-        schedule_time: null,
+        scheduled_time: null,
         audienceType: "all",
       });
       setSelectedCustomerKeys([]);
@@ -119,8 +119,8 @@ const Mail = () => {
     if (formValues.schedule_date) {
       fd.append("schedule_date", formValues.schedule_date.format("YYYY-MM-DD"));
     }
-    if (formValues.schedule_time) {
-      fd.append("schedule_time", formValues.schedule_time.format("HH:mm:ss"));
+    if (formValues.scheduled_time) {
+      fd.append("scheduled_time", formValues.scheduled_time.format("HH:mm:ss"));
     }
     fd.append("is_all_users", formValues.audienceType === "all" ? "1" : "0");
 
@@ -210,12 +210,12 @@ const Mail = () => {
       title: "Schedule At",
       key: "schedule_info",
       render: (record) => {
-        if (record.schedule_date || record.schedule_time) {
+        if (record.schedule_date || record.scheduled_time) {
           const date = record.schedule_date
             ? formatDate(record.schedule_date)
             : "N/A";
-          const time = record.schedule_time
-            ? formatTime(record.schedule_time)
+          const time = record.scheduled_time
+            ? formatTime(record.scheduled_time)
             : "N/A";
           return `${date} ${time}`;
         }
@@ -391,9 +391,9 @@ const Mail = () => {
         />
         <TimePicker
           placeholder="Scheduled Time (optional)"
-          value={formValues.schedule_time}
+          value={formValues.scheduled_time}
           format="HH:mm:ss"
-          onChange={(value) => handleInputChange("schedule_time", value)}
+          onChange={(value) => handleInputChange("scheduled_time", value)}
           style={{ width: "100%", marginBottom: 12 }}
         />
         <Select
